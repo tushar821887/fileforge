@@ -27,6 +27,14 @@ import { AdBannerComponent } from '../../components/ad-banner/ad-banner.componen
 
         <!-- Popular Shortcuts -->
         <div class="mt-8 flex flex-wrap items-center justify-center gap-2 max-w-3xl mx-auto">
+          <a
+            routerLink="/studio"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-900 border border-emerald-500/50 text-emerald-300 hover:text-white shadow-md text-xs font-bold transition-all hover:scale-105 mr-2"
+          >
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>FormatFlow Studio (Translator)</span>
+            <span class="px-1.5 py-0.2 text-[9px] uppercase font-black bg-emerald-400 text-slate-950 rounded">NEW</span>
+          </a>
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 mr-1">Popular:</span>
           @for (tool of popularTools; track tool.slug) {
             <a

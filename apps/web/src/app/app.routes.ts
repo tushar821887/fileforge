@@ -6,6 +6,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/home/home.component.js').then((m) => m.HomeComponent),
   },
   {
+    path: 'studio',
+    loadComponent: () =>
+      import('./pages/studio/studio.component.js').then((m) => m.StudioComponent),
+  },
+  {
     path: 'tools/:slug',
     loadComponent: () =>
       import('./pages/tool-page/tool-page.component.js').then((m) => m.ToolPageComponent),

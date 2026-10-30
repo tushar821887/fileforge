@@ -6,12 +6,14 @@ import type {
   BatchConversionResponse,
   ConversionOptions,
   SystemHealthResponse,
+  SupportedLanguage,
+  TranslationJobResult,
 } from '@formatflow/shared';
 
-export interface UploadProgressEvent {
+export interface UploadProgressEvent<T = BatchConversionResponse> {
   type: 'uploading' | 'processing' | 'completed' | 'error';
   progress: number;
-  result?: BatchConversionResponse;
+  result?: T;
   error?: string;
 }
 
@@ -27,11 +29,19 @@ export class ApiService {
     return `${this.baseUrl}/api/v1/conversions/${jobId}/download`;
   }
 
+  getTranslationFileUrl(jobId: string, langCode: string): string {
+    return `${this.baseUrl}/api/v1/translate/${jobId}/download/${langCode}`;
+  }
+
+  getTranslationZipUrl(jobId: string): string {
+    return `${this.baseUrl}/api/v1/translate/${jobId}/download-all`;
+  }
+
   convertFilesWithProgress(
     toolSlug: string,
     files: File[],
     options: ConversionOptions = {}
-  ): Observable<UploadProgressEvent> {
+  ): Observable<UploadProgressEvent<BatchConversionResponse>> {
     const formData = new FormData();
     formData.append('toolSlug', toolSlug);
     formData.append('options', JSON.stringify(options));
@@ -45,7 +55,7 @@ export class ApiService {
     });
 
     return this.http.request<BatchConversionResponse>(req).pipe(
-      map((event: HttpEvent<BatchConversionResponse>): UploadProgressEvent => {
+      map((event: HttpEvent<BatchConversionResponse>): UploadProgressEvent<BatchConversionResponse> => {
         switch (event.type) {
           case HttpEventType.UploadProgress:
             const percent = event.total ? Math.round((100 * event.loaded) / event.total) : 50;
@@ -89,7 +99,58 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/api/v1/contact`, data);
   }
 
-  getContactInfo(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/api/v1/contact/info`);
+  // --- FormatFlow Studio Translation API ---
+
+  getSupportedLanguages(): Observable<SupportedLanguage[]> {
+    return this.http.get<SupportedLanguage[]>(`${this.baseUrl}/api/v1/translate/languages`);
+  }
+
+  translateDocument(
+    file: File,
+    targetLanguages: string[]
+  ): Observable<UploadProgressEvent<TranslationJobResult>> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('targetLanguages', JSON.stringify(targetLanguages));
+
+    const req = new HttpRequest('POST', `${this.baseUrl}/api/v1/translate`, formData, {
+      reportProgress: true,
+    });
+
+    return this.http.request<TranslationJobResult>(req).pipe(
+      map((event: HttpEvent<TranslationJobResult>): UploadProgressEvent<TranslationJobResult> => {
+        switch (event.type) {
+          case HttpEventType.UploadProgress:
+            const percent = event.total ? Math.round((100 * event.loaded) / event.total) : 30;
+            return {
+              type: 'uploading',
+              progress: Math.min(60, percent),
+            };
+
+          case HttpEventType.Response:
+            return {
+              type: 'completed',
+              progress: 100,
+              result: event.body ?? undefined,
+            };
+
+          default:
+            return {
+              type: 'processing',
+              progress: 85,
+            };
+        }
+      })
+    );
+  }
+
+  getTranslationStatus(jobId: string): Observable<TranslationJobResult> {
+    return this.http.get<TranslationJobResult>(`${this.baseUrl}/api/v1/translate/${jobId}`);
+  }
+
+  deleteTranslationJob(jobId: string): Observable<{ success: boolean; message: string }> {
+    return this.http.delete<{ success: boolean; message: string }>(
+      `${this.baseUrl}/api/v1/translate/${jobId}`
+    );
   }
 }

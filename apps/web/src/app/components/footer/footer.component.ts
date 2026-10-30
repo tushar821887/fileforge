@@ -58,6 +58,12 @@ import { RouterLink } from '@angular/router';
           <div>
             <h3 class="text-xs font-semibold uppercase tracking-wider text-white mb-3">Platform</h3>
             <ul class="space-y-2 text-sm">
+              <li>
+                <a routerLink="/studio" class="text-emerald-400 font-semibold hover:text-emerald-300 transition-colors flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  FormatFlow Studio
+                </a>
+              </li>
               <li><a routerLink="/tools/csv-to-xlsx" class="hover:text-white transition-colors">CSV to XLSX</a></li>
               <li><a routerLink="/tools/xlsx-to-csv" class="hover:text-white transition-colors">XLSX to CSV</a></li>
               <li><a routerLink="/tools/txt-to-pdf" class="hover:text-white transition-colors">TXT to PDF</a></li>

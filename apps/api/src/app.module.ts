@@ -10,6 +10,7 @@ import { ConversionModule } from './modules/conversion/conversion.module.js';
 import { ToolsModule } from './modules/tools/tools.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { ContactModule } from './modules/contact/contact.module.js';
+import { TranslationModule } from './modules/translation/translation.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ContactModule } from './modules/contact/contact.module.js';
     ToolsModule,
     HealthModule,
     ContactModule,
+    TranslationModule,
   ],
   providers: [
     {

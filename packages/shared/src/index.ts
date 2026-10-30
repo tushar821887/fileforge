@@ -31,7 +31,61 @@ export interface ConversionOptions {
   // Document options
   sheetName?: string;
   csvDelimiter?: string;
+  // Translation options
+  targetLanguages?: string[];
 }
+
+export interface SupportedLanguage {
+  code: string; // e.g. 'zh-CN'
+  langKey: string; // e.g. 'zh'
+  name: string; // e.g. 'Chinese'
+  nativeName: string; // e.g. '中文'
+  countryCode: string; // e.g. 'CN'
+}
+
+export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
+  { code: 'zh-CN', langKey: 'zh', name: 'Chinese', nativeName: '中文', countryCode: 'CN' },
+  { code: 'fr-FR', langKey: 'fr', name: 'French', nativeName: 'Français', countryCode: 'FR' },
+  { code: 'de-DE', langKey: 'de', name: 'German', nativeName: 'Deutsch', countryCode: 'DE' },
+  { code: 'es-ES', langKey: 'es', name: 'Spanish', nativeName: 'Español', countryCode: 'ES' },
+  { code: 'hi-IN', langKey: 'hi', name: 'Hindi', nativeName: 'हिन्दी', countryCode: 'IN' },
+  { code: 'ja-JP', langKey: 'ja', name: 'Japanese', nativeName: '日本語', countryCode: 'JP' },
+  { code: 'ar-SA', langKey: 'ar', name: 'Arabic', nativeName: 'العربية', countryCode: 'SA' },
+  { code: 'it-IT', langKey: 'it', name: 'Italian', nativeName: 'Italiano', countryCode: 'IT' },
+  { code: 'pt-BR', langKey: 'pt', name: 'Portuguese', nativeName: 'Português', countryCode: 'BR' },
+  { code: 'ru-RU', langKey: 'ru', name: 'Russian', nativeName: 'Русский', countryCode: 'RU' },
+  { code: 'ko-KR', langKey: 'ko', name: 'Korean', nativeName: '한국어', countryCode: 'KR' },
+  { code: 'nl-NL', langKey: 'nl', name: 'Dutch', nativeName: 'Nederlands', countryCode: 'NL' },
+  { code: 'tr-TR', langKey: 'tr', name: 'Turkish', nativeName: 'Türkçe', countryCode: 'TR' },
+  { code: 'en-US', langKey: 'en', name: 'English', nativeName: 'English', countryCode: 'US' },
+];
+
+export interface TranslatedFileItem {
+  languageCode: string;
+  languageName: string;
+  filename: string;
+  size: number;
+  downloadUrl: string;
+}
+
+export interface TranslationJobResult {
+  jobId: string;
+  originalFilename: string;
+  originalSize: number;
+  format: string;
+  status: JobStatus;
+  progress: number;
+  targetLanguages: string[];
+  translatedFiles: TranslatedFileItem[];
+  zipDownloadUrl?: string;
+  slideCount?: number;
+  pageCount?: number;
+  error?: string;
+  createdAt: number;
+  completedAt?: number;
+  expiresAt: number;
+}
+
 
 export interface ToolFaq {
   question: string;

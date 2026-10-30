@@ -26,22 +26,24 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
           <!-- Desktop Navigation -->
           <nav class="hidden md:flex items-center gap-1">
-            <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+            <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
               Home
             </a>
-            <a routerLink="/tools/jpg-to-png" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
-              Image Tools
+            <a routerLink="/studio" routerLinkActive="bg-emerald-50 text-emerald-700 font-bold border-emerald-400" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50/70 border border-emerald-300 hover:bg-emerald-100 transition-all shadow-xs">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Studio
+              <span class="px-1.5 py-0.2 text-[9px] uppercase font-black bg-emerald-600 text-white rounded">NEW</span>
             </a>
-            <a routerLink="/tools/merge-pdf" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+            <a routerLink="/tools/jpg-to-png" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+              Images
+            </a>
+            <a routerLink="/tools/merge-pdf" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
               PDF Tools
             </a>
-            <a routerLink="/tools/csv-to-xlsx" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+            <a routerLink="/tools/csv-to-xlsx" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
               Documents
             </a>
-            <a routerLink="/privacy" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
-              Privacy Policy
-            </a>
-            <a routerLink="/contact" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+            <a routerLink="/contact" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
               Contact
             </a>
           </nav>
@@ -69,6 +71,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       @if (mobileMenuOpen()) {
         <div class="md:hidden border-t border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1">
           <a routerLink="/" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Home</a>
+          <a routerLink="/studio" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-bold text-emerald-700 bg-emerald-50 border border-emerald-300">FormatFlow Studio (Document Translator)</a>
           <a routerLink="/tools/jpg-to-png" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Image Tools</a>
           <a routerLink="/tools/merge-pdf" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">PDF Tools</a>
           <a routerLink="/tools/csv-to-xlsx" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Document Tools</a>
