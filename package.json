@@ -1,0 +1,22 @@
+{
+  "name": "formatflow-root",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:shared": "npm --prefix packages/shared run build",
+    "build:api": "npm --prefix apps/api run build",
+    "build:web": "npm --prefix apps/web run build",
+    "build": "npm run build:shared && npm run build:api && npm run build:web",
+    "start:api": "npm --prefix apps/api run start:dev",
+    "start:web": "npm --prefix apps/web run start",
+    "test:api": "npm --prefix apps/api run test",
+    "test:web": "npm --prefix apps/web run test"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

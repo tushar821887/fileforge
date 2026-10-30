@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: formatflow-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - CORS_ORIGINS=http://localhost:80,http://localhost:4200,http://localhost:3000
+      - STORAGE_PATH=/app/storage/temp
+      - MAX_FILE_SIZE_MB=50
+      - FILE_RETENTION_MINUTES=60
+    volumes:
+      - formatflow-temp:/app/storage/temp
+    ports:
+      - "3000:3000"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: formatflow-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  formatflow-temp:
