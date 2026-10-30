@@ -99,4 +99,24 @@ describe('TranslationEngine', () => {
     expect(str).toContain('"Resumen ejecutivo"');
     expect(str).toContain('Ingresos');
   });
+
+  it('generates real 24-slide sample presentation and translates it seamlessly', async () => {
+    const sampleBuffer = await engine.generateSamplePptx();
+    expect(sampleBuffer).toBeInstanceOf(Buffer);
+
+    // Verify it can be loaded by JSZip and translated
+    const result = await engine.translatePptx(sampleBuffer, 'zh-CN');
+    expect(result.slideCount).toBe(24);
+    expect(result.buffer).toBeInstanceOf(Buffer);
+
+    const zip = await JSZip.loadAsync(result.buffer);
+    const slide1 = await zip.file('ppt/slides/slide1.xml')!.async('string');
+    expect(slide1).toContain('投资者简报');
+  });
+
+  it('throws BadRequestException when an invalid non-zip buffer is uploaded', async () => {
+    const invalidBuffer = Buffer.from('Not a zip file at all', 'utf8');
+    await expect(engine.translatePptx(invalidBuffer, 'zh-CN')).rejects.toThrowError(/Invalid PowerPoint file/);
+    await expect(engine.translateDocx(invalidBuffer, 'zh-CN')).rejects.toThrowError(/Invalid Word file/);
+  });
 });

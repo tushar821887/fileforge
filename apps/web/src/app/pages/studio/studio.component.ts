@@ -78,6 +78,17 @@ import type {
               </div>
             </div>
 
+            <!-- Error Notification Banner -->
+            <div *ngIf="errorMessage" class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/50 text-rose-300 text-xs flex items-center justify-between shadow-lg">
+              <div class="flex items-center space-x-2.5">
+                <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ errorMessage }}</span>
+              </div>
+              <button type="button" (click)="errorMessage = null" class="text-rose-400 hover:text-white text-xs px-2 py-0.5 rounded transition">✕</button>
+            </div>
+
             <!-- Pipeline 3-Card Grid with Glowing Connecting Line -->
             <div class="relative">
               
@@ -593,22 +604,34 @@ export class StudioComponent implements OnInit {
   }
 
   loadSamplePresentation(): void {
-    // Generates a mock presentation file matching the screenshot: Q2_Investor_Update.pptx
-    const mockContent = 'FormatFlow Studio Presentation Mock XML Content';
-    const blob = new Blob([mockContent], {
-      type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    this.apiService.getSamplePresentationBlob().subscribe({
+      next: (blob: Blob) => {
+        const file = new File([blob], 'Q2_Investor_Update.pptx', {
+          type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        });
+        this.selectedFile = file;
+        this.fileFormat = 'pptx';
+        this.slideCount = 24;
+        this.pageCount = null;
+        this.selectedLanguageCodes = ['zh-CN', 'fr-FR', 'de-DE'];
+        this.translationJob = null;
+        this.progress = 0;
+        this.errorMessage = null;
+      },
+      error: () => {
+        // Fallback placeholder file
+        const blob = new Blob([''], {
+          type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        });
+        const file = new File([blob], 'Q2_Investor_Update.pptx', {
+          type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        });
+        this.selectedFile = file;
+        this.fileFormat = 'pptx';
+        this.slideCount = 24;
+        this.selectedLanguageCodes = ['zh-CN', 'fr-FR', 'de-DE'];
+      },
     });
-    const file = new File([blob], 'Q2_Investor_Update.pptx', {
-      type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    });
-
-    this.selectedFile = file;
-    this.fileFormat = 'pptx';
-    this.slideCount = 24;
-    this.pageCount = null;
-    this.selectedLanguageCodes = ['zh-CN', 'fr-FR', 'de-DE'];
-    this.translationJob = null;
-    this.progress = 0;
   }
 
   startTranslation(): void {

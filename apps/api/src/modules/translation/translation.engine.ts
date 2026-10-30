@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import JSZip from 'jszip';
 
 export interface TranslateResult {
@@ -553,7 +553,14 @@ export class TranslationEngine {
    * Modifies only the inner text inside OpenXML <a:t> tags.
    */
   public async translatePptx(buffer: Buffer, targetLanguageCode: string): Promise<TranslateResult> {
-    const zip = await JSZip.loadAsync(buffer);
+    let zip: JSZip;
+    try {
+      zip = await JSZip.loadAsync(buffer);
+    } catch (err: any) {
+      throw new BadRequestException(
+        `Invalid PowerPoint file: The file is not a valid OpenXML (.pptx) ZIP archive: ${err.message}`
+      );
+    }
     let slideCount = 0;
 
     const files = Object.keys(zip.files);
@@ -604,7 +611,14 @@ export class TranslationEngine {
    * Modifies only inner text inside OpenXML <w:t> tags.
    */
   public async translateDocx(buffer: Buffer, targetLanguageCode: string): Promise<TranslateResult> {
-    const zip = await JSZip.loadAsync(buffer);
+    let zip: JSZip;
+    try {
+      zip = await JSZip.loadAsync(buffer);
+    } catch (err: any) {
+      throw new BadRequestException(
+        `Invalid Word file: The file is not a valid OpenXML (.docx) ZIP archive: ${err.message}`
+      );
+    }
     let estimatedPages = 1;
 
     const files = Object.keys(zip.files);
@@ -721,5 +735,178 @@ export class TranslationEngine {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
+  }
+
+  public buildSlideXml(title: string, subtitle: string, bullets: string[] = []): string {
+    const bulletParagraphs = bullets
+      .map(
+        (b) =>
+          `<a:p><a:pPr lvl="1"/><a:r><a:rPr lang="en-US" sz="1800"/><a:t>${this.encodeXmlEntities(b)}</a:t></a:r></a:p>`
+      )
+      .join('');
+
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+      <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+        <p:spPr><a:xfrm><a:off x="685800" y="609600"/><a:ext cx="7772400" cy="1143000"/></a:xfrm></p:spPr>
+        <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="3600" b="1"/><a:t>${this.encodeXmlEntities(title)}</a:t></a:r></a:p></p:txBody>
+      </p:sp>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="3" name="Content"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr>
+        <p:spPr><a:xfrm><a:off x="685800" y="2057400"/><a:ext cx="7772400" cy="4114800"/></a:xfrm></p:spPr>
+        <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="2000"/><a:t>${this.encodeXmlEntities(subtitle)}</a:t></a:r></a:p>${bulletParagraphs}</p:txBody>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+  }
+
+  public async generateSamplePptx(): Promise<Buffer> {
+    const zip = new JSZip();
+
+    const slideTopics = [
+      {
+        title: 'Q2 Investor Update',
+        subtitle: 'FormatFlow Technologies Corporate Overview',
+        bullets: ['Global file conversion & document intelligence platform', 'Proprietary layout preservation technology'],
+      },
+      {
+        title: 'Executive Summary',
+        subtitle: 'Quarterly Performance & Growth Trajectory',
+        bullets: ['Revenue growth +142% year-over-year', 'Local zero-retention architecture launched'],
+      },
+      {
+        title: 'Financial Overview',
+        subtitle: 'Revenue, Gross Margin & EBITDA',
+        bullets: ['Quarterly revenue reached $8.4M', 'Profitable operations with strong cash flow'],
+      },
+      {
+        title: 'Market Strategy',
+        subtitle: 'Enterprise Document Transformation',
+        bullets: ['Global enterprise adoption expanding', 'High demand for privacy-first compliance tools'],
+      },
+      {
+        title: 'Product Roadmap',
+        subtitle: 'Core Technology Milestones',
+        bullets: ['FormatFlow Studio document layout translation released', 'High-performance vector PDF engine integration'],
+      },
+      {
+        title: 'Operations & Execution',
+        subtitle: 'Global Infrastructure Highlights',
+        bullets: ['Sub-50ms conversion pipeline latency', '99.99% system availability SLA achieved'],
+      },
+      {
+        title: 'Customer Results',
+        subtitle: 'User Metrics & Retention Highlights',
+        bullets: ['Customer net retention rate at 128%', 'Customer satisfaction score (CSAT) 98.4%'],
+      },
+      {
+        title: 'Team & Leadership',
+        subtitle: 'Key Engineering & Design Talent',
+        bullets: ['World-class full-stack and systems engineering team', 'Distributed global talent across engineering and AI'],
+      },
+      {
+        title: 'Next Steps',
+        subtitle: 'Second Half Priorities',
+        bullets: ['Expanding language models for layout preservation', 'Enterprise API private beta launch'],
+      },
+      {
+        title: 'Thank you',
+        subtitle: 'Q&A and Discussion',
+        bullets: ['Email: contact@formatflow.app', 'Website: formatflow.io'],
+      },
+    ];
+
+    const totalSlides = 24;
+    const slidesData: { title: string; subtitle: string; bullets: string[] }[] = [];
+    for (let i = 0; i < totalSlides; i++) {
+      if (i === 0) {
+        slidesData.push(slideTopics[0]);
+      } else if (i === totalSlides - 1) {
+        slidesData.push(slideTopics[slideTopics.length - 1]);
+      } else {
+        const topic = slideTopics[1 + ((i - 1) % (slideTopics.length - 2))];
+        slidesData.push({
+          title: `Slide ${i + 1} · ${topic.title}`,
+          subtitle: topic.subtitle,
+          bullets: topic.bullets,
+        });
+      }
+    }
+
+    const overrideTypes = slidesData
+      .map(
+        (_, idx) =>
+          `<Override PartName="/ppt/slides/slide${idx + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`
+      )
+      .join('\n  ');
+
+    zip.file(
+      '[Content_Types].xml',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
+  ${overrideTypes}
+</Types>`
+    );
+
+    zip.file(
+      '_rels/.rels',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
+</Relationships>`
+    );
+
+    const slideRels = slidesData
+      .map(
+        (_, idx) =>
+          `<Relationship Id="rId${idx + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${idx + 1}.xml"/>`
+      )
+      .join('\n  ');
+
+    zip.file(
+      'ppt/_rels/presentation.xml.rels',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  ${slideRels}
+</Relationships>`
+    );
+
+    const sldIds = slidesData
+      .map(
+        (_, idx) =>
+          `<p:sldId id="${256 + idx}" r:id="rId${idx + 1}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>`
+      )
+      .join('\n    ');
+
+    zip.file(
+      'ppt/presentation.xml',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:sldIdLst>
+    ${sldIds}
+  </p:sldIdLst>
+  <p:sldSz cx="9144000" cy="5143500"/>
+</p:presentation>`
+    );
+
+    for (let i = 0; i < totalSlides; i++) {
+      const data = slidesData[i];
+      zip.file(`ppt/slides/slide${i + 1}.xml`, this.buildSlideXml(data.title, data.subtitle, data.bullets));
+    }
+
+    return await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 },
+    });
   }
 }

@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { StudioComponent } from './studio.component.js';
+import { ApiService } from '../../core/services/api.service.js';
 
 describe('StudioComponent', () => {
   let component: StudioComponent;
@@ -27,6 +29,8 @@ describe('StudioComponent', () => {
   });
 
   it('loads sample presentation (Q2_Investor_Update.pptx) with 24 slides', () => {
+    const apiService = TestBed.inject(ApiService);
+    vi.spyOn(apiService, 'getSamplePresentationBlob').mockReturnValue(of(new Blob(['test-presentation'])));
     component.loadSamplePresentation();
     expect(component.selectedFile).toBeTruthy();
     expect(component.selectedFile?.name).toBe('Q2_Investor_Update.pptx');

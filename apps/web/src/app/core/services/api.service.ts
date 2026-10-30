@@ -153,4 +153,10 @@ export class ApiService {
       `${this.baseUrl}/api/v1/translate/${jobId}`
     );
   }
+
+  getSamplePresentationBlob(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/api/v1/translate/sample-presentation`, {
+      responseType: 'blob',
+    });
+  }
 }

@@ -57,6 +57,10 @@ export class TranslationService {
     return SUPPORTED_LANGUAGES;
   }
 
+  async getSamplePresentation(): Promise<Buffer> {
+    return this.translationEngine.generateSamplePptx();
+  }
+
   getJob(jobId: string): TranslationJobResult {
     const job = this.jobs.get(jobId);
     if (!job) {

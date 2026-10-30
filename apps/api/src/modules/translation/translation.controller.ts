@@ -28,6 +28,21 @@ export class TranslationController {
     return this.translationService.getSupportedLanguages();
   }
 
+  @Get('sample-presentation')
+  @ApiOperation({ summary: 'Get sample PowerPoint presentation for testing (24 slides)' })
+  async getSamplePresentation(@Res() res: Response) {
+    const buffer = await this.translationService.getSamplePresentation();
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Q2_Investor_Update.pptx"'
+    );
+    res.send(buffer);
+  }
+
   @Post()
   @ApiOperation({
     summary: 'Upload document and translate to multiple languages while preserving layout',
