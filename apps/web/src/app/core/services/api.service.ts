@@ -84,4 +84,12 @@ export class ApiService {
   getHealth(): Observable<SystemHealthResponse> {
     return this.http.get<SystemHealthResponse>(`${this.baseUrl}/api/v1/health`);
   }
+
+  sendContactMessage(data: { name: string; email?: string; phone?: string; message: string }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/api/v1/contact`, data);
+  }
+
+  getContactInfo(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/api/v1/contact/info`);
+  }
 }

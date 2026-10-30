@@ -9,6 +9,7 @@ import { ValidatorModule } from './modules/validator/validator.module.js';
 import { ConversionModule } from './modules/conversion/conversion.module.js';
 import { ToolsModule } from './modules/tools/tools.module.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { ContactModule } from './modules/contact/contact.module.js';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { HealthModule } from './modules/health/health.module.js';
     ConversionModule,
     ToolsModule,
     HealthModule,
+    ContactModule,
   ],
   providers: [
     {

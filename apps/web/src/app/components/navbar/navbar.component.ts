@@ -41,6 +41,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
             <a routerLink="/privacy" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
               Privacy Policy
             </a>
+            <a routerLink="/contact" routerLinkActive="bg-blue-50 text-blue-600 font-semibold" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors">
+              Contact
+            </a>
           </nav>
 
           <!-- Header Right Utilities -->
@@ -76,6 +79,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <a routerLink="/tools/merge-pdf" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">PDF Tools</a>
           <a routerLink="/tools/csv-to-xlsx" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Document Tools</a>
           <a routerLink="/privacy" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Privacy & Retention</a>
+          <a routerLink="/contact" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Contact Us</a>
           <a href="http://localhost:3000/api/docs" target="_blank" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:bg-blue-50">API Docs (OpenAPI)</a>
         </div>
       }

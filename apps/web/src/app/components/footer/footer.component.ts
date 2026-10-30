@@ -64,6 +64,7 @@ import { RouterLink } from '@angular/router';
               <li><a routerLink="/privacy" class="hover:text-white transition-colors">Privacy Policy</a></li>
               <li><a routerLink="/terms" class="hover:text-white transition-colors">Terms of Service</a></li>
               <li><a routerLink="/about" class="hover:text-white transition-colors">About FormatFlow</a></li>
+              <li><a routerLink="/contact" class="hover:text-white transition-colors">Contact Us</a></li>
             </ul>
           </div>
         </div>

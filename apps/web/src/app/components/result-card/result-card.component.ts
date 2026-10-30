@@ -10,11 +10,23 @@ import { ApiService } from '../../core/services/api.service.js';
       <div class="flex items-start justify-between flex-wrap gap-4">
         <!-- Success indicator and details -->
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
+          @if (isImage()) {
+            <!-- Converted Image Preview Thumbnail -->
+            <a [href]="getDownloadUrl()" target="_blank" title="View converted image" class="relative w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 group shadow-xs">
+              <img [src]="getDownloadUrl()" class="w-full h-full object-contain group-hover:scale-105 transition-transform" [alt]="job().convertedFilename" />
+              <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </a>
+          } @else {
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          }
 
           <div>
             <div class="flex items-center gap-2">
@@ -97,6 +109,13 @@ export class ResultCardComponent {
   private readonly apiService = inject(ApiService);
   isDeleting = signal(false);
   deletedMessage = signal<string | null>(null);
+
+  isImage(): boolean {
+    const mime = this.job().convertedMimeType;
+    if (mime && mime.startsWith('image/')) return true;
+    const ext = this.job().convertedFilename?.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg'].includes(ext || '');
+  }
 
   getDownloadUrl(): string {
     return this.apiService.getDownloadUrl(this.job().jobId);
