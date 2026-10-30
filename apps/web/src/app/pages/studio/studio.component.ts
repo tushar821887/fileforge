@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService, UploadProgressEvent } from '../../core/services/api.service.js';
 import { SeoService } from '../../core/services/seo.service.js';
-import {
-  SUPPORTED_LANGUAGES,
-  type SupportedLanguage,
-  type TranslationJobResult,
+import { SUPPORTED_LANGUAGES } from '../../core/constants/languages.js';
+import type {
+  SupportedLanguage,
+  TranslationJobResult,
 } from '@formatflow/shared';
 
 @Component({
