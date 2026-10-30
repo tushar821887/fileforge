@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService, UploadProgressEvent } from '../../core/services/api.service.js';
@@ -68,7 +68,7 @@ import type {
                   type="button"
                   (click)="loadSamplePresentation()"
                   class="text-xs px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-800/60 transition flex items-center gap-1.5 shadow-sm"
-                  [disabled]="isTranslating"
+                  [disabled]="isTranslating()"
                 >
                   <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -79,15 +79,17 @@ import type {
             </div>
 
             <!-- Error Notification Banner -->
-            <div *ngIf="errorMessage" class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/50 text-rose-300 text-xs flex items-center justify-between shadow-lg">
-              <div class="flex items-center space-x-2.5">
-                <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{{ errorMessage }}</span>
+            @if (errorMessage(); as err) {
+              <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/50 text-rose-300 text-xs flex items-center justify-between shadow-lg">
+                <div class="flex items-center space-x-2.5">
+                  <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{{ err }}</span>
+                </div>
+                <button type="button" (click)="errorMessage.set(null)" class="text-rose-400 hover:text-white text-xs px-2 py-0.5 rounded transition">✕</button>
               </div>
-              <button type="button" (click)="errorMessage = null" class="text-rose-400 hover:text-white text-xs px-2 py-0.5 rounded transition">✕</button>
-            </div>
+            }
 
             <!-- Pipeline 3-Card Grid with Glowing Connecting Line -->
             <div class="relative">
@@ -104,57 +106,65 @@ import type {
                   <div>
                     <h3 class="text-sm font-semibold text-slate-300 tracking-wide mb-6">Source file</h3>
 
-                    <!-- Upload State: No file selected -->
-                    <div *ngIf="!selectedFile" class="flex flex-col items-center justify-center text-center py-6">
-                      <div class="w-20 h-24 rounded-xl border-2 border-dashed border-emerald-800/60 bg-emerald-950/20 flex flex-col items-center justify-center mb-4 transition group-hover:border-emerald-500/60">
-                        <svg class="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                      </div>
-
-                      <label class="cursor-pointer inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md transition">
-                        <span>Select Document</span>
-                        <input
-                          type="file"
-                          (change)="onFileInputChange($event)"
-                          accept=".pptx,.docx,.txt,.csv,.html,.htm"
-                          class="hidden"
-                        />
-                      </label>
-                      <p class="text-[11px] text-slate-400 mt-2">PPTX, DOCX, TXT, CSV, HTML</p>
-                    </div>
-
-                    <!-- File Loaded State (Directly matches the screenshot!) -->
-                    <div *ngIf="selectedFile" class="flex flex-col items-center text-center">
-                      <!-- Big Document Icon with Badge -->
-                      <div class="relative w-24 h-32 bg-slate-100 rounded-xl shadow-2xl p-3 flex flex-col justify-between border border-slate-300 mb-4 transition-transform hover:scale-105">
-                        <div class="space-y-1.5 opacity-40">
-                          <div class="h-1.5 w-12 bg-slate-600 rounded"></div>
-                          <div class="h-1.5 w-16 bg-slate-600 rounded"></div>
-                          <div class="h-1.5 w-14 bg-slate-600 rounded"></div>
-                          <div class="h-1.5 w-10 bg-slate-600 rounded"></div>
+                    @if (!selectedFile()) {
+                      <!-- Upload State: No file selected -->
+                      <div class="flex flex-col items-center justify-center text-center py-6">
+                        <div class="w-20 h-24 rounded-xl border-2 border-dashed border-emerald-800/60 bg-emerald-950/20 flex flex-col items-center justify-center mb-4 transition group-hover:border-emerald-500/60">
+                          <svg class="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
                         </div>
 
-                        <!-- Format Badge -->
-                        <div
-                          class="self-end px-2 py-0.5 rounded text-[11px] font-black tracking-wider text-white shadow-sm"
-                          [ngClass]="getFormatBadgeClass(fileFormat)"
-                        >
-                          {{ fileFormat.toUpperCase() }}
-                        </div>
+                        <label class="cursor-pointer inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md transition">
+                          <span>Select Document</span>
+                          <input
+                            type="file"
+                            (change)="onFileInputChange($event)"
+                            accept=".pptx,.docx,.txt,.csv,.html,.htm"
+                            class="hidden"
+                          />
+                        </label>
+                        <p class="text-[11px] text-slate-400 mt-2">PPTX, DOCX, TXT, CSV, HTML</p>
                       </div>
+                    } @else {
+                      <!-- File Loaded State (Directly matches the screenshot!) -->
+                      @if (selectedFile(); as file) {
+                        <div class="flex flex-col items-center text-center">
+                          <!-- Big Document Icon with Badge -->
+                          <div class="relative w-24 h-32 bg-slate-100 rounded-xl shadow-2xl p-3 flex flex-col justify-between border border-slate-300 mb-4 transition-transform hover:scale-105">
+                            <div class="space-y-1.5 opacity-40">
+                              <div class="h-1.5 w-12 bg-slate-600 rounded"></div>
+                              <div class="h-1.5 w-16 bg-slate-600 rounded"></div>
+                              <div class="h-1.5 w-14 bg-slate-600 rounded"></div>
+                              <div class="h-1.5 w-10 bg-slate-600 rounded"></div>
+                            </div>
 
-                      <!-- File Details -->
-                      <h4 class="font-bold text-white text-sm max-w-[240px] truncate" [title]="selectedFile.name">
-                        {{ selectedFile.name }}
-                      </h4>
+                            <!-- Format Badge -->
+                            <div
+                              class="self-end px-2 py-0.5 rounded text-[11px] font-black tracking-wider text-white shadow-sm"
+                              [ngClass]="getFormatBadgeClass(fileFormat())"
+                            >
+                              {{ fileFormat().toUpperCase() }}
+                            </div>
+                          </div>
 
-                      <p class="text-xs text-slate-400 mt-1 font-mono">
-                        <span *ngIf="slideCount">{{ slideCount }} slides · </span>
-                        <span *ngIf="pageCount">{{ pageCount }} pages · </span>
-                        {{ formatFileSize(selectedFile.size) }}
-                      </p>
-                    </div>
+                          <!-- File Details -->
+                          <h4 class="font-bold text-white text-sm max-w-[240px] truncate" [title]="file.name">
+                            {{ file.name }}
+                          </h4>
+
+                          <p class="text-xs text-slate-400 mt-1 font-mono">
+                            @if (slideCount()) {
+                              <span>{{ slideCount() }} slides · </span>
+                            }
+                            @if (pageCount()) {
+                              <span>{{ pageCount() }} pages · </span>
+                            }
+                            <span>{{ formatFileSize(file.size) }}</span>
+                          </p>
+                        </div>
+                      }
+                    }
                   </div>
 
                   <!-- Loaded Locally Badge & Actions -->
@@ -166,18 +176,20 @@ import type {
                       <span>Loaded locally</span>
                     </div>
 
-                    <div *ngIf="selectedFile">
-                      <label class="text-[11px] text-slate-400 hover:text-emerald-400 cursor-pointer underline transition">
-                        Change
-                        <input
-                          type="file"
-                          (change)="onFileInputChange($event)"
-                          accept=".pptx,.docx,.txt,.csv,.html,.htm"
-                          class="hidden"
-                          [disabled]="isTranslating"
-                        />
-                      </label>
-                    </div>
+                    @if (selectedFile()) {
+                      <div>
+                        <label class="text-[11px] text-slate-400 hover:text-emerald-400 cursor-pointer underline transition">
+                          Change
+                          <input
+                            type="file"
+                            (change)="onFileInputChange($event)"
+                            accept=".pptx,.docx,.txt,.csv,.html,.htm"
+                            class="hidden"
+                            [disabled]="isTranslating()"
+                          />
+                        </label>
+                      </div>
+                    }
                   </div>
 
                   <!-- Glowing connector node right side (Desktop) -->
@@ -191,60 +203,61 @@ import type {
                   <div>
                     <div class="flex items-center justify-between mb-4">
                       <h3 class="text-sm font-semibold text-slate-300 tracking-wide">
-                        Target languages · {{ selectedLanguageCodes.length }} selected
+                        Target languages · {{ selectedLanguageCodes().length }} selected
                       </h3>
                       <button
                         type="button"
                         (click)="toggleAllLanguages()"
                         class="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium transition"
                       >
-                        {{ selectedLanguageCodes.length === availableLanguages.length ? 'Clear' : 'Select All' }}
+                        {{ selectedLanguageCodes().length === availableLanguages.length ? 'Clear' : 'Select All' }}
                       </button>
                     </div>
 
                     <!-- Languages List (Max 5 with scrollable container) -->
                     <div class="space-y-2.5 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
-                      <button
-                        type="button"
-                        *ngFor="let lang of availableLanguages"
-                        (click)="toggleLanguage(lang.code)"
-                        [disabled]="isTranslating"
-                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition text-xs group"
-                        [ngClass]="
-                          isLanguageSelected(lang.code)
-                            ? 'bg-emerald-950/40 border-emerald-600/60 text-white shadow-sm'
-                            : 'bg-[#0E1B19]/50 border-emerald-950/60 text-slate-300 hover:border-emerald-800/60 hover:text-white'
-                        "
-                      >
-                        <div class="flex items-center space-x-3">
-                          <span
-                            class="w-6 h-5 rounded font-mono font-bold text-[10px] flex items-center justify-center uppercase transition"
-                            [ngClass]="
-                              isLanguageSelected(lang.code)
-                                ? 'bg-emerald-500 text-[#0B1514]'
-                                : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700 group-hover:text-slate-200'
-                            "
-                          >
-                            {{ lang.countryCode }}
-                          </span>
-                          <span class="font-medium text-slate-100">{{ lang.name }}</span>
-                          <span class="text-slate-500 font-mono text-[10px]">{{ lang.code }}</span>
-                        </div>
-
-                        <!-- Checkmark icon -->
-                        <div
-                          class="w-4 h-4 rounded flex items-center justify-center transition"
+                      @for (lang of availableLanguages; track lang.code) {
+                        <button
+                          type="button"
+                          (click)="toggleLanguage(lang.code)"
+                          [disabled]="isTranslating()"
+                          class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition text-xs group"
                           [ngClass]="
                             isLanguageSelected(lang.code)
-                              ? 'text-emerald-400 font-bold'
-                              : 'text-transparent'
+                              ? 'bg-emerald-950/40 border-emerald-600/60 text-white shadow-sm'
+                              : 'bg-[#0E1B19]/50 border-emerald-950/60 text-slate-300 hover:border-emerald-800/60 hover:text-white'
                           "
                         >
-                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      </button>
+                          <div class="flex items-center space-x-3">
+                            <span
+                              class="w-6 h-5 rounded font-mono font-bold text-[10px] flex items-center justify-center uppercase transition"
+                              [ngClass]="
+                                isLanguageSelected(lang.code)
+                                  ? 'bg-emerald-500 text-[#0B1514]'
+                                  : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700 group-hover:text-slate-200'
+                              "
+                            >
+                              {{ lang.countryCode }}
+                            </span>
+                            <span class="font-medium text-slate-100">{{ lang.name }}</span>
+                            <span class="text-slate-500 font-mono text-[10px]">{{ lang.code }}</span>
+                          </div>
+
+                          <!-- Checkmark icon -->
+                          <div
+                            class="w-4 h-4 rounded flex items-center justify-center transition"
+                            [ngClass]="
+                              isLanguageSelected(lang.code)
+                                ? 'text-emerald-400 font-bold'
+                                : 'text-transparent'
+                            "
+                          >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </button>
+                      }
                     </div>
                   </div>
 
@@ -305,14 +318,14 @@ import type {
                           stroke-linecap="round"
                           fill="transparent"
                           [attr.stroke-dasharray]="circumference"
-                          [attr.stroke-dashoffset]="strokeDashoffset"
+                          [attr.stroke-dashoffset]="strokeDashoffset()"
                         />
                       </svg>
 
                       <!-- Center Percentage -->
                       <div class="absolute inset-0 flex flex-col items-center justify-center">
                         <span class="text-2xl font-black text-white tracking-tight">
-                          {{ progress }}%
+                          {{ progress() }}%
                         </span>
                       </div>
                     </div>
@@ -322,15 +335,15 @@ import type {
                       <div
                         class="text-sm font-bold tracking-wide"
                         [ngClass]="{
-                          'text-emerald-400': translationJob?.status === 'completed',
-                          'text-amber-400': isTranslating,
-                          'text-slate-300': !isTranslating && translationJob?.status !== 'completed'
+                          'text-emerald-400': translationJob()?.status === 'completed',
+                          'text-amber-400': isTranslating(),
+                          'text-slate-300': !isTranslating() && translationJob()?.status !== 'completed'
                         }"
                       >
-                        {{ statusTitle }}
+                        {{ statusTitle() }}
                       </div>
                       <div class="text-xs text-slate-400">
-                        {{ statusSubtitle }}
+                        {{ statusSubtitle() }}
                       </div>
                     </div>
                   </div>
@@ -340,14 +353,18 @@ import type {
                     <button
                       type="button"
                       (click)="startTranslation()"
-                      [disabled]="!canStartTranslation || isTranslating"
+                      [disabled]="!canStartTranslation() || isTranslating()"
                       class="w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-[#061210] bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(16,185,129,0.4)] transition active:scale-95 flex items-center justify-center space-x-2"
                     >
-                      <svg *ngIf="isTranslating" class="animate-spin -ml-1 mr-2 h-4 w-4 text-[#061210]" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>{{ isTranslating ? 'Translating Layout...' : 'Translate Document' }}</span>
+                      @if (isTranslating()) {
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-[#061210]" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Translating Layout...</span>
+                      } @else {
+                        <span>Translate Document</span>
+                      }
                     </button>
                   </div>
                 </div>
@@ -356,85 +373,86 @@ import type {
             </div>
 
             <!-- CARD 4: Review Pack (Appears when completed) -->
-            <div
-              *ngIf="translationJob?.status === 'completed'"
-              class="bg-[#0B1514] border border-emerald-500/50 rounded-2xl p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400 font-bold text-sm shrink-0">
-                  ✓
-                </div>
-                <div>
-                  <h3 class="text-sm font-bold text-white tracking-wide">Review pack</h3>
-                  <p class="text-xs text-slate-300">
-                    All translations complete. Files were processed locally on this machine.
-                  </p>
-                </div>
-              </div>
-
-              <!-- Translated Files List -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div
-                  *ngFor="let file of translationJob?.translatedFiles"
-                  class="flex items-center justify-between p-3 rounded-xl bg-[#081110] border border-emerald-950/80 hover:border-emerald-600/40 transition"
-                >
-                  <div class="min-w-0 pr-2">
-                    <div class="text-xs font-semibold text-slate-100 truncate" [title]="file.filename">
-                      {{ file.filename }}
+            @if (translationJob(); as job) {
+              @if (job.status === 'completed') {
+                <div class="bg-[#0B1514] border border-emerald-500/50 rounded-2xl p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400 font-bold text-sm shrink-0">
+                      ✓
                     </div>
-                    <div class="text-[11px] text-emerald-400 flex items-center space-x-2">
-                      <span>{{ file.languageName }}</span>
-                      <span class="text-slate-600">·</span>
-                      <span class="text-slate-400">{{ formatFileSize(file.size) }}</span>
+                    <div>
+                      <h3 class="text-sm font-bold text-white tracking-wide">Review pack</h3>
+                      <p class="text-xs text-slate-300">
+                        All translations complete. Files were processed locally on this machine.
+                      </p>
                     </div>
                   </div>
 
-                  <a
-                    [href]="getDownloadUrl(file.downloadUrl)"
-                    download
-                    class="shrink-0 p-2 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/60 transition"
-                    title="Download file"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                  </a>
+                  <!-- Translated Files List -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    @for (file of job.translatedFiles; track file.filename) {
+                      <div class="flex items-center justify-between p-3 rounded-xl bg-[#081110] border border-emerald-950/80 hover:border-emerald-600/40 transition">
+                        <div class="min-w-0 pr-2">
+                          <div class="text-xs font-semibold text-slate-100 truncate" [title]="file.filename">
+                            {{ file.filename }}
+                          </div>
+                          <div class="text-[11px] text-emerald-400 flex items-center space-x-2">
+                            <span>{{ file.languageName }}</span>
+                            <span class="text-slate-600">·</span>
+                            <span class="text-slate-400">{{ formatFileSize(file.size) }}</span>
+                          </div>
+                        </div>
+
+                        <a
+                          [href]="getDownloadUrl(file.downloadUrl)"
+                          download
+                          class="shrink-0 p-2 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/60 transition"
+                          title="Download file"
+                        >
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                        </a>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Bottom Actions: Download All as ZIP & Instant Purge -->
+                  <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-emerald-950/60">
+                    <div class="flex items-center space-x-2 text-xs text-slate-400">
+                      <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      <span>Auto-purges automatically within 60 minutes</span>
+                    </div>
+
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        (click)="purgeFiles()"
+                        class="px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 transition"
+                      >
+                        Purge Now
+                      </button>
+
+                      @if (job.zipDownloadUrl) {
+                        <a
+                          [href]="getDownloadUrl(job.zipDownloadUrl)"
+                          download
+                          class="flex-1 sm:flex-initial inline-flex items-center justify-center space-x-2 px-5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider text-[#061210] bg-emerald-400 hover:bg-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)] transition"
+                        >
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          <span>Download All as ZIP (Review Pack)</span>
+                        </a>
+                      }
+                    </div>
+                  </div>
+
                 </div>
-              </div>
-
-              <!-- Bottom Actions: Download All as ZIP & Instant Purge -->
-              <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-emerald-950/60">
-                <div class="flex items-center space-x-2 text-xs text-slate-400">
-                  <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span>Auto-purges automatically within 60 minutes</span>
-                </div>
-
-                <div class="flex items-center space-x-3 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    (click)="purgeFiles()"
-                    class="px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 transition"
-                  >
-                    Purge Now
-                  </button>
-
-                  <a
-                    *ngIf="translationJob?.zipDownloadUrl"
-                    [href]="getDownloadUrl(translationJob!.zipDownloadUrl!)"
-                    download
-                    class="flex-1 sm:flex-initial inline-flex items-center justify-center space-x-2 px-5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider text-[#061210] bg-emerald-400 hover:bg-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.35)] transition"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    <span>Download All as ZIP (Review Pack)</span>
-                  </a>
-                </div>
-              </div>
-
-            </div>
+              }
+            }
 
             <!-- Architecture & Feature Highlights -->
             <div class="pt-6 border-t border-emerald-950/40 grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs">
@@ -500,21 +518,44 @@ import type {
 export class StudioComponent implements OnInit {
   private readonly apiService = inject(ApiService);
   private readonly seoService = inject(SeoService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly availableLanguages: SupportedLanguage[] = SUPPORTED_LANGUAGES;
-  selectedLanguageCodes: string[] = ['zh-CN', 'fr-FR', 'de-DE'];
+  readonly selectedLanguageCodes = signal<string[]>(['zh-CN', 'fr-FR', 'de-DE']);
 
-  selectedFile: File | null = null;
-  fileFormat: string = 'pptx';
-  slideCount: number | null = null;
-  pageCount: number | null = null;
+  readonly selectedFile = signal<File | null>(null);
+  readonly fileFormat = signal<string>('pptx');
+  readonly slideCount = signal<number | null>(null);
+  readonly pageCount = signal<number | null>(null);
 
-  isTranslating = false;
-  progress = 0;
+  readonly isTranslating = signal<boolean>(false);
+  readonly progress = signal<number>(0);
   readonly circumference = 2 * Math.PI * 54; // ~339.29
 
-  translationJob: TranslationJobResult | null = null;
-  errorMessage: string | null = null;
+  readonly translationJob = signal<TranslationJobResult | null>(null);
+  readonly errorMessage = signal<string | null>(null);
+
+  readonly strokeDashoffset = computed(() => {
+    return this.circumference - (this.progress() / 100) * this.circumference;
+  });
+
+  readonly canStartTranslation = computed(() => {
+    return !!this.selectedFile() && this.selectedLanguageCodes().length > 0;
+  });
+
+  readonly statusTitle = computed(() => {
+    if (this.translationJob()?.status === 'completed') return 'Complete';
+    if (this.isTranslating()) return 'Translating...';
+    if (this.selectedFile()) return 'Ready to Translate';
+    return 'Waiting for File';
+  });
+
+  readonly statusSubtitle = computed(() => {
+    if (this.translationJob()?.status === 'completed') return 'Ready for review';
+    if (this.isTranslating()) return 'Preserving 100% visual layout...';
+    if (this.selectedFile()) return `${this.selectedLanguageCodes().length} languages selected`;
+    return 'Select a file to begin';
+  });
 
   ngOnInit(): void {
     this.seoService.setSeoData({
@@ -525,56 +566,37 @@ export class StudioComponent implements OnInit {
     });
   }
 
-  get strokeDashoffset(): number {
-    return this.circumference - (this.progress / 100) * this.circumference;
-  }
-
-  get canStartTranslation(): boolean {
-    return !!this.selectedFile && this.selectedLanguageCodes.length > 0;
-  }
-
-  get statusTitle(): string {
-    if (this.translationJob?.status === 'completed') return 'Complete';
-    if (this.isTranslating) return 'Translating...';
-    if (this.selectedFile) return 'Ready to Translate';
-    return 'Waiting for File';
-  }
-
-  get statusSubtitle(): string {
-    if (this.translationJob?.status === 'completed') return 'Ready for review';
-    if (this.isTranslating) return 'Preserving 100% visual layout...';
-    if (this.selectedFile) return `${this.selectedLanguageCodes.length} languages selected`;
-    return 'Select a file to begin';
-  }
-
   isLanguageSelected(code: string): boolean {
-    return this.selectedLanguageCodes.includes(code);
+    return this.selectedLanguageCodes().includes(code);
   }
 
   toggleLanguage(code: string): void {
-    if (this.isTranslating) return;
-    const index = this.selectedLanguageCodes.indexOf(code);
+    if (this.isTranslating()) return;
+    const current = [...this.selectedLanguageCodes()];
+    const index = current.indexOf(code);
     if (index >= 0) {
-      if (this.selectedLanguageCodes.length > 1) {
-        this.selectedLanguageCodes.splice(index, 1);
+      if (current.length > 1) {
+        current.splice(index, 1);
+        this.selectedLanguageCodes.set(current);
       }
     } else {
-      this.selectedLanguageCodes.push(code);
+      current.push(code);
+      this.selectedLanguageCodes.set(current);
     }
   }
 
   toggleAllLanguages(): void {
-    if (this.isTranslating) return;
-    if (this.selectedLanguageCodes.length === this.availableLanguages.length) {
-      this.selectedLanguageCodes = ['zh-CN'];
+    if (this.isTranslating()) return;
+    if (this.selectedLanguageCodes().length === this.availableLanguages.length) {
+      this.selectedLanguageCodes.set(['zh-CN']);
     } else {
-      this.selectedLanguageCodes = this.availableLanguages.map((l) => l.code);
+      this.selectedLanguageCodes.set(this.availableLanguages.map((l) => l.code));
     }
   }
 
   selectPreset(codes: string[]): void {
-    if (this.isTranslating) return;
-    this.selectedLanguageCodes = [...codes];
+    if (this.isTranslating()) return;
+    this.selectedLanguageCodes.set([...codes]);
   }
 
   onFileInputChange(event: Event): void {
@@ -585,22 +607,23 @@ export class StudioComponent implements OnInit {
   }
 
   handleFileSelected(file: File): void {
-    this.selectedFile = file;
-    this.fileFormat = file.name.split('.').pop()?.toLowerCase() || 'pptx';
-    this.translationJob = null;
-    this.progress = 0;
+    this.selectedFile.set(file);
+    const fmt = file.name.split('.').pop()?.toLowerCase() || 'pptx';
+    this.fileFormat.set(fmt);
+    this.translationJob.set(null);
+    this.progress.set(0);
 
-    // Approximate slide or page count
-    if (this.fileFormat === 'pptx') {
-      this.slideCount = Math.max(1, Math.round(file.size / 350000));
-      this.pageCount = null;
-    } else if (this.fileFormat === 'docx' || this.fileFormat === 'txt') {
-      this.pageCount = Math.max(1, Math.round(file.size / 50000));
-      this.slideCount = null;
+    if (fmt === 'pptx') {
+      this.slideCount.set(Math.max(1, Math.round(file.size / 350000)));
+      this.pageCount.set(null);
+    } else if (fmt === 'docx' || fmt === 'txt') {
+      this.pageCount.set(Math.max(1, Math.round(file.size / 50000)));
+      this.slideCount.set(null);
     } else {
-      this.slideCount = null;
-      this.pageCount = null;
+      this.slideCount.set(null);
+      this.pageCount.set(null);
     }
+    this.cdr.detectChanges();
   }
 
   loadSamplePresentation(): void {
@@ -609,72 +632,82 @@ export class StudioComponent implements OnInit {
         const file = new File([blob], 'Q2_Investor_Update.pptx', {
           type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         });
-        this.selectedFile = file;
-        this.fileFormat = 'pptx';
-        this.slideCount = 24;
-        this.pageCount = null;
-        this.selectedLanguageCodes = ['zh-CN', 'fr-FR', 'de-DE'];
-        this.translationJob = null;
-        this.progress = 0;
-        this.errorMessage = null;
+        this.selectedFile.set(file);
+        this.fileFormat.set('pptx');
+        this.slideCount.set(24);
+        this.pageCount.set(null);
+        this.selectedLanguageCodes.set(['zh-CN', 'fr-FR', 'de-DE']);
+        this.translationJob.set(null);
+        this.progress.set(0);
+        this.errorMessage.set(null);
+        this.cdr.detectChanges();
       },
       error: () => {
-        // Fallback placeholder file
         const blob = new Blob([''], {
           type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         });
         const file = new File([blob], 'Q2_Investor_Update.pptx', {
           type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         });
-        this.selectedFile = file;
-        this.fileFormat = 'pptx';
-        this.slideCount = 24;
-        this.selectedLanguageCodes = ['zh-CN', 'fr-FR', 'de-DE'];
+        this.selectedFile.set(file);
+        this.fileFormat.set('pptx');
+        this.slideCount.set(24);
+        this.selectedLanguageCodes.set(['zh-CN', 'fr-FR', 'de-DE']);
+        this.cdr.detectChanges();
       },
     });
   }
 
   startTranslation(): void {
-    if (!this.selectedFile || this.selectedLanguageCodes.length === 0 || this.isTranslating) {
+    const file = this.selectedFile();
+    const languages = this.selectedLanguageCodes();
+    if (!file || languages.length === 0 || this.isTranslating()) {
       return;
     }
 
-    this.isTranslating = true;
-    this.progress = 10;
-    this.errorMessage = null;
+    this.isTranslating.set(true);
+    this.progress.set(10);
+    this.errorMessage.set(null);
+    this.cdr.detectChanges();
 
-    this.apiService.translateDocument(this.selectedFile, this.selectedLanguageCodes).subscribe({
+    this.apiService.translateDocument(file, languages).subscribe({
       next: (event: UploadProgressEvent<TranslationJobResult>) => {
         if (event.type === 'uploading') {
-          this.progress = event.progress;
+          this.progress.set(event.progress);
+          this.cdr.detectChanges();
         } else if (event.type === 'processing') {
-          this.progress = 85;
+          this.progress.set(85);
+          this.cdr.detectChanges();
         } else if (event.type === 'completed' && event.result) {
-          this.progress = 100;
-          this.isTranslating = false;
-          this.translationJob = event.result;
+          this.progress.set(100);
+          this.isTranslating.set(false);
+          this.translationJob.set(event.result);
           if (event.result.slideCount) {
-            this.slideCount = event.result.slideCount;
+            this.slideCount.set(event.result.slideCount);
           }
           if (event.result.pageCount) {
-            this.pageCount = event.result.pageCount;
+            this.pageCount.set(event.result.pageCount);
           }
+          this.cdr.detectChanges();
         }
       },
       error: (err) => {
-        this.isTranslating = false;
-        this.progress = 0;
-        this.errorMessage = err.error?.message || 'Translation failed. Please try again.';
+        this.isTranslating.set(false);
+        this.progress.set(0);
+        this.errorMessage.set(err.error?.message || 'Translation failed. Please try again.');
+        this.cdr.detectChanges();
       },
     });
   }
 
   purgeFiles(): void {
-    if (this.translationJob?.jobId) {
-      this.apiService.deleteTranslationJob(this.translationJob.jobId).subscribe({
+    const job = this.translationJob();
+    if (job?.jobId) {
+      this.apiService.deleteTranslationJob(job.jobId).subscribe({
         next: () => {
-          this.translationJob = null;
-          this.progress = 0;
+          this.translationJob.set(null);
+          this.progress.set(0);
+          this.cdr.detectChanges();
         },
       });
     }

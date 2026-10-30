@@ -23,19 +23,19 @@ describe('StudioComponent', () => {
 
   it('creates successfully with default languages selected', () => {
     expect(component).toBeTruthy();
-    expect(component.selectedLanguageCodes).toContain('zh-CN');
-    expect(component.selectedLanguageCodes).toContain('fr-FR');
-    expect(component.selectedLanguageCodes).toContain('de-DE');
+    expect(component.selectedLanguageCodes()).toContain('zh-CN');
+    expect(component.selectedLanguageCodes()).toContain('fr-FR');
+    expect(component.selectedLanguageCodes()).toContain('de-DE');
   });
 
   it('loads sample presentation (Q2_Investor_Update.pptx) with 24 slides', () => {
     const apiService = TestBed.inject(ApiService);
     vi.spyOn(apiService, 'getSamplePresentationBlob').mockReturnValue(of(new Blob(['test-presentation'])));
     component.loadSamplePresentation();
-    expect(component.selectedFile).toBeTruthy();
-    expect(component.selectedFile?.name).toBe('Q2_Investor_Update.pptx');
-    expect(component.slideCount).toBe(24);
-    expect(component.canStartTranslation).toBe(true);
+    expect(component.selectedFile()).toBeTruthy();
+    expect(component.selectedFile()?.name).toBe('Q2_Investor_Update.pptx');
+    expect(component.slideCount()).toBe(24);
+    expect(component.canStartTranslation()).toBe(true);
   });
 
   it('toggles target languages correctly', () => {
