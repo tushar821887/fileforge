@@ -52,12 +52,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Auto-Purge 60m
             </div>
-            <a href="http://localhost:3000/api/docs" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors inline-flex items-center gap-1">
-              <span>API Spec</span>
-              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
           </div>
 
           <!-- Mobile menu button -->
@@ -80,7 +74,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <a routerLink="/tools/csv-to-xlsx" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Document Tools</a>
           <a routerLink="/privacy" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Privacy & Retention</a>
           <a routerLink="/contact" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Contact Us</a>
-          <a href="http://localhost:3000/api/docs" target="_blank" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:bg-blue-50">API Docs (OpenAPI)</a>
         </div>
       }
     </header>
