@@ -183,9 +183,14 @@ export class ConversionService {
       const now = Date.now();
       const expiresAt = now + this.retentionMinutes * 60 * 1000;
 
-      const targetFormat = tool.defaultOutputFormat;
+      const isUtilityTool = ['image-compressor', 'image-resizer', 'image-rotator', 'image-cropper'].includes(toolSlug);
+      const targetFormat = isUtilityTool
+        ? valid.extension.replace('.', '')
+        : tool.defaultOutputFormat;
       const baseName = valid.sanitizedName.replace(/\.[^.]+$/, '');
-      const outFilename = `${baseName}_converted.${targetFormat}`;
+      const outFilename = toolSlug === 'image-compressor'
+        ? `${baseName}_compressed.${targetFormat}`
+        : `${baseName}_converted.${targetFormat}`;
 
       const jobState: InternalJobState = {
         jobId,

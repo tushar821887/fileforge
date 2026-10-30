@@ -77,6 +77,8 @@ import { AdBannerComponent } from '../../components/ad-banner/ad-banner.componen
             <div class="mt-6">
               <app-options-panel
                 [supportedOptions]="currentTool.supportedOptions"
+                [toolSlug]="currentTool.slug"
+                [files]="selectedFiles()"
                 (optionsChange)="onOptionsChanged($event)"
               />
 
@@ -90,7 +92,15 @@ import { AdBannerComponent } from '../../components/ad-banner/ad-banner.componen
                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <span>Convert {{ selectedFiles().length }} File{{ selectedFiles().length > 1 ? 's' : '' }} Now</span>
+                  <span>
+                    {{ currentTool.slug === 'image-compressor' ? 'Compress' : 'Convert' }}
+                    {{ selectedFiles().length }} File{{ selectedFiles().length > 1 ? 's' : '' }} Now
+                    @if (currentTool.slug === 'image-compressor' && selectedFiles().length > 0) {
+                      <span class="text-blue-100 font-medium text-sm ml-1">
+                        (Est. ~{{ formatSize(totalEstimatedCompressedSize()) }})
+                      </span>
+                    }
+                  </span>
                 </button>
               </div>
             </div>
@@ -351,5 +361,25 @@ export class ToolPageComponent implements OnInit {
       default:
         return 'bg-slate-50 text-slate-700';
     }
+  }
+
+  totalEstimatedCompressedSize(): number {
+    const q = this.conversionOptions.quality ?? 85;
+    const factor = q >= 85
+      ? 0.35 + (q - 85) * ((0.85 - 0.35) / 15)
+      : 0.06 + Math.pow((q - 10) / 75, 1.5) * (0.35 - 0.06);
+
+    return this.selectedFiles().reduce((acc, f) => {
+      const est = Math.round(f.size * factor);
+      return acc + Math.min(f.size, Math.max(500, est));
+    }, 0);
+  }
+
+  formatSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   }
 }
