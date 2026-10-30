@@ -59,5 +59,5 @@ describe('TranslationService End-to-End', () => {
 
     // Clean up
     await service.deleteJob(result.jobId);
-  });
+  }, 60000);
 });

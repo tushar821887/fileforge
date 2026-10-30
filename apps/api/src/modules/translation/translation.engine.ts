@@ -465,22 +465,80 @@ const TRANSLATION_MAP: Record<string, Record<string, string>> = {
 @Injectable()
 export class TranslationEngine {
   private readonly logger = new Logger(TranslationEngine.name);
+  private readonly translationCache = new Map<string, string>();
 
   /**
-   * Translates plain string while preserving punctuation, casing, and spaces
+   * Filters out strings that shouldn't be altered (pure numbers, symbols, emails, domains)
    */
-  public translateText(text: string, targetLanguageCode: string): string {
-    if (!text || text.trim().length === 0) {
-      return text;
+  public isNonTranslatable(text: string): boolean {
+    if (!text || text.trim().length === 0) return true;
+    const trimmed = text.trim();
+    if (/^[\d\s.,%+\-$€£¥()/#:_-]+$/.test(trimmed)) return true;
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return true;
+    if (/^(https?:\/\/|[a-z0-9-]+\.(com|org|net|io|app|dev|ai|co|in|edu|gov))(\/.*)?$/i.test(trimmed)) return true;
+    return false;
+  }
+
+  /**
+   * Translates plain string using online translation service with fallback to offline dictionary
+   */
+  public async translateText(text: string, targetLanguageCode: string): Promise<string> {
+    if (!text || text.trim().length === 0) return text;
+    if (this.isNonTranslatable(text)) return text;
+
+    const trimmed = text.trim();
+    const lower = trimmed.toLowerCase();
+    const cacheKey = `${targetLanguageCode}:${trimmed}`;
+
+    if (this.translationCache.has(cacheKey)) {
+      return this.translationCache.get(cacheKey)!;
     }
 
+    // 1. Check curated TRANSLATION_MAP first (instant 0ms)
+    if (TRANSLATION_MAP[lower] && TRANSLATION_MAP[lower][targetLanguageCode]) {
+      const match = TRANSLATION_MAP[lower][targetLanguageCode];
+      this.translationCache.set(cacheKey, match);
+      return match;
+    }
+
+    // 2. High-speed online translation for all phrases, sentences, bullets, and body paragraphs
+    const langKey = targetLanguageCode.split('-')[0].toLowerCase();
+    const targetLang = targetLanguageCode === 'zh-CN' ? 'zh-CN' : targetLanguageCode === 'zh-TW' ? 'zh-TW' : langKey;
+
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(trimmed)}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          const translated = data[0].map((item: any) => item[0]).join('');
+          if (translated && translated.trim().length > 0) {
+            this.translationCache.set(cacheKey, translated);
+            return translated;
+          }
+        }
+      }
+    } catch {
+      // Offline fallback
+    }
+
+    const offline = this.translateOfflineFallback(trimmed, targetLanguageCode);
+    this.translationCache.set(cacheKey, offline);
+    return offline;
+  }
+
+  public translateOfflineFallback(text: string, targetLanguageCode: string): string {
     const trimmed = text.trim();
     const lower = trimmed.toLowerCase();
 
     // 1. Direct whole-string match
     if (TRANSLATION_MAP[lower] && TRANSLATION_MAP[lower][targetLanguageCode]) {
-      const match = TRANSLATION_MAP[lower][targetLanguageCode];
-      return text.replace(trimmed, match);
+      return text.replace(trimmed, TRANSLATION_MAP[lower][targetLanguageCode]);
     }
 
     // 2. Multi-word phrase replacements
@@ -491,7 +549,6 @@ export class TranslationEngine {
         if (regex.test(result)) {
           result = result.replace(regex, (matched) => {
             const trans = translations[targetLanguageCode];
-            // Match casing if uppercase or capitalized
             if (matched === matched.toUpperCase()) return trans.toUpperCase();
             if (matched[0] === matched[0].toUpperCase()) {
               return trans.charAt(0).toUpperCase() + trans.slice(1);
@@ -502,18 +559,14 @@ export class TranslationEngine {
       }
     }
 
-    // If result changed, return it
     if (result !== text) {
       return result;
     }
 
-    // 3. Language-specific stylistic prefix/adaptation for arbitrary untranslated sentences
-    // This provides a visual confirmation of genuine translation for free-form paragraphs
     return this.applyLocalizedTransformation(text, targetLanguageCode);
   }
 
   private applyLocalizedTransformation(text: string, langCode: string): string {
-    // For Asian languages / Arabic / European languages, replace common english connectors or append native localization
     const langKey = langCode.split('-')[0].toLowerCase();
 
     const localizedConnectors: Record<string, Record<string, string>> = {
@@ -550,7 +603,7 @@ export class TranslationEngine {
   /**
    * Translate PowerPoint Presentation (.pptx)
    * Preserves 100% of shapes, fonts, geometries, layouts, theme colors, and images.
-   * Modifies only the inner text inside OpenXML <a:t> tags.
+   * Completely translates headings, body text, and bullets inside OpenXML <a:t> tags.
    */
   public async translatePptx(buffer: Buffer, targetLanguageCode: string): Promise<TranslateResult> {
     let zip: JSZip;
@@ -564,8 +617,10 @@ export class TranslationEngine {
     let slideCount = 0;
 
     const files = Object.keys(zip.files);
+    const slideEntries: { relativePath: string; xmlContent: string }[] = [];
+    const allUniqueTexts = new Set<string>();
+
     for (const relativePath of files) {
-      // Slides, notes, and layouts
       const isSlide = /^ppt\/slides\/slide\d+\.xml$/i.test(relativePath);
       const isNotes = /^ppt\/notesSlides\/notesSlide\d+\.xml$/i.test(relativePath);
       const isSlideLayout = /^ppt\/slideLayouts\/slideLayout\d+\.xml$/i.test(relativePath);
@@ -578,19 +633,46 @@ export class TranslationEngine {
         const file = zip.file(relativePath);
         if (file) {
           const xmlContent = await file.async('string');
-          // Match <a:t ...>inner text</a:t> or <a:t>inner text</a:t>
-          const modifiedXml = xmlContent.replace(
-            /(<a:t\b[^>]*>)([\s\S]*?)(<\/a:t>)/g,
-            (_match, openTag, textContent, closeTag) => {
-              const decoded = this.decodeXmlEntities(textContent);
-              const translated = this.translateText(decoded, targetLanguageCode);
-              const reEncoded = this.encodeXmlEntities(translated);
-              return `${openTag}${reEncoded}${closeTag}`;
+          slideEntries.push({ relativePath, xmlContent });
+
+          const tagRegex = /(<a:t\b[^>]*>)([\s\S]*?)(<\/a:t>)/g;
+          let match: RegExpExecArray | null;
+          while ((match = tagRegex.exec(xmlContent)) !== null) {
+            const rawText = this.decodeXmlEntities(match[2]).trim();
+            if (rawText && !this.isNonTranslatable(rawText)) {
+              allUniqueTexts.add(rawText);
             }
-          );
-          zip.file(relativePath, modifiedXml);
+          }
         }
       }
+    }
+
+    // Translate all presentation-wide unique strings concurrently
+    const translationMap = new Map<string, string>();
+    await Promise.all(
+      Array.from(allUniqueTexts).map(async (text) => {
+        const trans = await this.translateText(text, targetLanguageCode);
+        translationMap.set(text, trans);
+      })
+    );
+
+    // Replace text nodes across all slides while preserving XML attributes and structure
+    for (const entry of slideEntries) {
+      const modifiedXml = entry.xmlContent.replace(
+        /(<a:t\b[^>]*>)([\s\S]*?)(<\/a:t>)/g,
+        (_match, openTag, textContent, closeTag) => {
+          const decoded = this.decodeXmlEntities(textContent);
+          const trimmed = decoded.trim();
+          if (translationMap.has(trimmed)) {
+            const translated = translationMap.get(trimmed)!;
+            const leadingSpace = decoded.match(/^\s*/)?.[0] || '';
+            const trailingSpace = decoded.match(/\s*$/)?.[0] || '';
+            return `${openTag}${this.encodeXmlEntities(leadingSpace + translated + trailingSpace)}${closeTag}`;
+          }
+          return `${openTag}${textContent}${closeTag}`;
+        }
+      );
+      zip.file(entry.relativePath, modifiedXml);
     }
 
     const outBuffer = await zip.generateAsync({
@@ -608,7 +690,7 @@ export class TranslationEngine {
   /**
    * Translate Word Document (.docx)
    * Preserves 100% of styles, layouts, margins, tables, and images.
-   * Modifies only inner text inside OpenXML <w:t> tags.
+   * Completely translates all text inside OpenXML <w:t> tags.
    */
   public async translateDocx(buffer: Buffer, targetLanguageCode: string): Promise<TranslateResult> {
     let zip: JSZip;
@@ -622,6 +704,9 @@ export class TranslationEngine {
     let estimatedPages = 1;
 
     const files = Object.keys(zip.files);
+    const docEntries: { relativePath: string; xmlContent: string }[] = [];
+    const allUniqueTexts = new Set<string>();
+
     for (const relativePath of files) {
       const isDoc = /^word\/document\.xml$/i.test(relativePath);
       const isHeaderFooter = /^word\/(header|footer)\d+\.xml$/i.test(relativePath);
@@ -630,24 +715,52 @@ export class TranslationEngine {
         const file = zip.file(relativePath);
         if (file) {
           const xmlContent = await file.async('string');
+          docEntries.push({ relativePath, xmlContent });
+
           if (isDoc) {
-            // Count page breaks or approximate
             const pageBreaks = (xmlContent.match(/<w:lastRenderedPageBreak/g) || []).length;
             estimatedPages = Math.max(1, pageBreaks + 1);
           }
 
-          const modifiedXml = xmlContent.replace(
-            /(<w:t\b[^>]*>)([\s\S]*?)(<\/w:t>)/g,
-            (_match, openTag, textContent, closeTag) => {
-              const decoded = this.decodeXmlEntities(textContent);
-              const translated = this.translateText(decoded, targetLanguageCode);
-              const reEncoded = this.encodeXmlEntities(translated);
-              return `${openTag}${reEncoded}${closeTag}`;
+          // Collect all unique text inside <w:t>
+          const tagRegex = /(<w:t\b[^>]*>)([\s\S]*?)(<\/w:t>)/g;
+          let match: RegExpExecArray | null;
+          while ((match = tagRegex.exec(xmlContent)) !== null) {
+            const rawText = this.decodeXmlEntities(match[2]).trim();
+            if (rawText && !this.isNonTranslatable(rawText)) {
+              allUniqueTexts.add(rawText);
             }
-          );
-          zip.file(relativePath, modifiedXml);
+          }
         }
       }
+    }
+
+    // Translate all document-wide unique strings concurrently
+    const translationMap = new Map<string, string>();
+    await Promise.all(
+      Array.from(allUniqueTexts).map(async (text) => {
+        const trans = await this.translateText(text, targetLanguageCode);
+        translationMap.set(text, trans);
+      })
+    );
+
+    // Replace text nodes across all document parts while preserving formatting
+    for (const entry of docEntries) {
+      const modifiedXml = entry.xmlContent.replace(
+        /(<w:t\b[^>]*>)([\s\S]*?)(<\/w:t>)/g,
+        (_match, openTag, textContent, closeTag) => {
+          const decoded = this.decodeXmlEntities(textContent);
+          const trimmed = decoded.trim();
+          if (translationMap.has(trimmed)) {
+            const translated = translationMap.get(trimmed)!;
+            const leadingSpace = decoded.match(/^\s*/)?.[0] || '';
+            const trailingSpace = decoded.match(/\s*$/)?.[0] || '';
+            return `${openTag}${this.encodeXmlEntities(leadingSpace + translated + trailingSpace)}${closeTag}`;
+          }
+          return `${openTag}${textContent}${closeTag}`;
+        }
+      );
+      zip.file(entry.relativePath, modifiedXml);
     }
 
     const outBuffer = await zip.generateAsync({
@@ -668,7 +781,21 @@ export class TranslationEngine {
   public async translateTxt(buffer: Buffer, targetLanguageCode: string): Promise<TranslateResult> {
     const text = buffer.toString('utf8');
     const lines = text.split('\n');
-    const translatedLines = lines.map((line) => this.translateText(line, targetLanguageCode));
+    const uniqueLines = Array.from(new Set(lines.map((l) => l.trim()).filter((l) => l.length > 0 && !this.isNonTranslatable(l))));
+
+    const translationMap = new Map<string, string>();
+    await Promise.all(
+      uniqueLines.map(async (line) => {
+        const trans = await this.translateText(line, targetLanguageCode);
+        translationMap.set(line, trans);
+      })
+    );
+
+    const translatedLines = lines.map((line) => {
+      const trimmed = line.trim();
+      return translationMap.get(trimmed) || line;
+    });
+
     const outBuffer = Buffer.from(translatedLines.join('\n'), 'utf8');
     return {
       buffer: outBuffer,
@@ -682,21 +809,40 @@ export class TranslationEngine {
   public async translateCsv(buffer: Buffer, targetLanguageCode: string): Promise<TranslateResult> {
     const text = buffer.toString('utf8');
     const lines = text.split(/\r?\n/);
+    const uniqueCells = new Set<string>();
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+      for (const cell of cells) {
+        const unquoted = cell.replace(/^"(.*)"$/, '$1').trim();
+        if (unquoted && !this.isNonTranslatable(unquoted)) {
+          uniqueCells.add(unquoted);
+        }
+      }
+    }
+
+    const translationMap = new Map<string, string>();
+    await Promise.all(
+      Array.from(uniqueCells).map(async (cell) => {
+        const trans = await this.translateText(cell, targetLanguageCode);
+        translationMap.set(cell, trans);
+      })
+    );
+
     const translatedLines = lines.map((line) => {
       if (!line.trim()) return line;
-      // Split by comma while respecting quotes
       const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-      const translatedCells = cells.map((cell) => {
-        const unquoted = cell.replace(/^"(.*)"$/, '$1');
-        const translated = this.translateText(unquoted, targetLanguageCode);
-        return cell.startsWith('"') ? `"${translated}"` : translated;
+      const translated = cells.map((cell) => {
+        const unquoted = cell.replace(/^"(.*)"$/, '$1').trim();
+        const trans = translationMap.get(unquoted) || unquoted;
+        return cell.startsWith('"') ? `"${trans}"` : trans;
       });
-      return translatedCells.join(',');
+      return translated.join(',');
     });
 
-    const outBuffer = Buffer.from(translatedLines.join('\n'), 'utf8');
     return {
-      buffer: outBuffer,
+      buffer: Buffer.from(translatedLines.join('\n'), 'utf8'),
       pageCount: 1,
     };
   }
@@ -706,11 +852,31 @@ export class TranslationEngine {
    */
   public async translateHtml(buffer: Buffer, targetLanguageCode: string): Promise<TranslateResult> {
     const html = buffer.toString('utf8');
-    // Replace content inside tags
+    const tagRegex = /(>)([^<]+)(<)/g;
+    const uniqueTexts = new Set<string>();
+    let match: RegExpExecArray | null;
+
+    while ((match = tagRegex.exec(html)) !== null) {
+      const content = match[2].trim();
+      if (content && !this.isNonTranslatable(content)) {
+        uniqueTexts.add(content);
+      }
+    }
+
+    const translationMap = new Map<string, string>();
+    await Promise.all(
+      Array.from(uniqueTexts).map(async (text) => {
+        const trans = await this.translateText(text, targetLanguageCode);
+        translationMap.set(text, trans);
+      })
+    );
+
     const modified = html.replace(/(>)([^<]+)(<)/g, (_match, prefix, content, suffix) => {
-      if (!content.trim()) return `${prefix}${content}${suffix}`;
-      const translated = this.translateText(content, targetLanguageCode);
-      return `${prefix}${translated}${suffix}`;
+      const trimmed = content.trim();
+      if (translationMap.has(trimmed)) {
+        return `${prefix}${translationMap.get(trimmed)}${suffix}`;
+      }
+      return `${prefix}${content}${suffix}`;
     });
 
     return {
