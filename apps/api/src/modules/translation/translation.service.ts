@@ -2,8 +2,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
-import * as archiverNamespace from 'archiver';
-const archiver: any = (archiverNamespace as any).default || archiverNamespace;
+import JSZip from 'jszip';
 import {
   SUPPORTED_LANGUAGES,
   type TranslationJobResult,
@@ -248,21 +247,21 @@ export class TranslationService {
   }
 
   private async createReviewPackZip(files: InternalTranslatedFile[], destPath: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const output = fs.createWriteStream(destPath);
-      const archive = archiver('zip', { zlib: { level: 6 } });
-
-      output.on('close', () => resolve());
-      archive.on('error', (err: any) => reject(err));
-
-      archive.pipe(output);
-
-      for (const item of files) {
-        archive.file(item.filePath, { name: item.filename });
+    const zip = new JSZip();
+    for (const item of files) {
+      if (fs.existsSync(item.filePath)) {
+        const content = await fs.promises.readFile(item.filePath);
+        zip.file(item.filename, content);
       }
+    }
 
-      archive.finalize();
+    const zipBuffer = await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 },
     });
+
+    await fs.promises.writeFile(destPath, zipBuffer);
   }
 
   async deleteJob(jobId: string): Promise<boolean> {
