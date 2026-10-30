@@ -5,20 +5,20 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY packages/shared/package*.json ./packages/shared/
-COPY apps/web/package*.json ./apps/web/
+COPY frontend/package*.json ./frontend/
 
 RUN npm ci
 
 COPY packages/shared/ ./packages/shared/
-COPY apps/web/ ./apps/web/
+COPY frontend/ ./frontend/
 
 RUN npm --prefix packages/shared run build
-RUN npm --prefix apps/web run build
+RUN npm --prefix frontend run build
 
 # Nginx Alpine runtime
 FROM nginx:alpine AS runner
 
-COPY --from=builder /app/apps/web/dist/web/browser /usr/share/nginx/html
+COPY --from=builder /app/frontend/dist/web/browser /usr/share/nginx/html
 
 # Custom nginx config for Angular routing and gzip
 RUN echo 'server { \
@@ -32,7 +32,7 @@ RUN echo 'server { \
         try_files $uri $uri/ /index.html; \
     } \
     location /api/ { \
-        proxy_pass http://api:3000; \
+        proxy_pass http://backend:3000; \
         proxy_http_version 1.1; \
         proxy_set_header Upgrade $http_upgrade; \
         proxy_set_header Connection "upgrade"; \

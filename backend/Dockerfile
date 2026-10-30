@@ -1,4 +1,4 @@
-# FormatFlow API Dockerfile
+# FormatFlow Backend API Dockerfile
 FROM node:22-bullseye-slim AS builder
 
 WORKDIR /app
@@ -13,18 +13,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy root workspace configurations
 COPY package*.json ./
 COPY packages/shared/package*.json ./packages/shared/
-COPY apps/api/package*.json ./apps/api/
+COPY backend/package*.json ./backend/
 
 # Install dependencies
 RUN npm ci
 
 # Copy source files
 COPY packages/shared/ ./packages/shared/
-COPY apps/api/ ./apps/api/
+COPY backend/ ./backend/
 
-# Build shared package and api
+# Build shared package and backend
 RUN npm --prefix packages/shared run build
-RUN npm --prefix apps/api run build
+RUN npm --prefix backend run build
 
 # Production runtime container
 FROM node:22-bullseye-slim AS runner
@@ -44,13 +44,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy package manifests and install only production dependencies
 COPY package*.json ./
 COPY packages/shared/package*.json ./packages/shared/
-COPY apps/api/package*.json ./apps/api/
+COPY backend/package*.json ./backend/
 
 RUN npm ci --omit=dev
 
 # Copy built artifacts from builder stage
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/backend/dist ./backend/dist
 
 # Expose API port
 EXPOSE 3000
@@ -59,4 +59,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD node -e "fetch('http://localhost:3000/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
-CMD ["node", "apps/api/dist/src/main.js"]
+CMD ["node", "backend/dist/src/main.js"]

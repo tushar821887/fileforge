@@ -24,31 +24,31 @@
 
 ```
 formatflow/
-├── apps/
-│   ├── api/                     # NestJS TypeScript backend API
-│   │   ├── src/
-│   │   │   ├── config/          # Environment configuration
-│   │   │   ├── modules/
-│   │   │   │   ├── conversion/  # Engines (sharp, pdf-lib, xlsx, doc) & controllers
-│   │   │   │   ├── health/      # Uptime and engine status monitoring
-│   │   │   │   ├── storage/     # UUID storage management & 60m cleanup daemon
-│   │   │   │   ├── tools/       # Tool catalog & format capabilities
-│   │   │   │   └── validator/   # Binary file signature (magic bytes) validation
-│   │   │   └── main.ts          # Server entry point & Swagger documentation
-│   │   ├── Dockerfile           # Docker container with headless LibreOffice
-│   │   └── package.json
-│   │
-│   └── web/                     # Angular 22 Standalone application
-│       ├── src/
-│       │   ├── app/
-│       │   │   ├── components/  # Navbar, Footer, Dropzone, Options, Progress, Result
-│       │   │   ├── core/        # ApiService, SeoService
-│       │   │   ├── pages/       # Home, ToolPage, Privacy, Terms, About
-│       │   │   └── app.routes.ts# Lazy-loaded routes
-│       │   ├── public/          # sitemap.xml & robots.txt
-│       │   └── styles.css       # Tailwind CSS v4 styling
-│       ├── Dockerfile           # Multi-stage Nginx container
-│       └── package.json
+├── backend/                     # NestJS TypeScript backend API
+│   ├── src/
+│   │   ├── config/              # Environment configuration
+│   │   ├── modules/
+│   │   │   ├── conversion/      # Engines (sharp, pdf-lib, xlsx, doc) & controllers
+│   │   │   ├── health/          # Uptime and engine status monitoring
+│   │   │   ├── storage/         # UUID storage management & 60m cleanup daemon
+│   │   │   ├── tools/           # Tool catalog & format capabilities
+│   │   │   ├── translation/     # FormatFlow Studio document translator
+│   │   │   └── validator/       # Binary file signature (magic bytes) validation
+│   │   └── main.ts              # Server entry point & Swagger documentation
+│   ├── Dockerfile               # Docker container with headless LibreOffice
+│   └── package.json
+│
+├── frontend/                    # Angular 22 Standalone application
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── components/      # Navbar, Footer, CookieConsent, Dropzone, Options, Result
+│   │   │   ├── core/            # ApiService, SeoService, CookieConsentService
+│   │   │   ├── pages/           # Home, Studio, ToolPage, Privacy, Terms, About, Contact
+│   │   │   └── app.routes.ts    # Lazy-loaded routes
+│   │   ├── public/              # sitemap.xml, robots.txt, ads.txt, manifest.webmanifest
+│   │   └── styles.css           # Tailwind CSS v4 styling
+│   ├── Dockerfile               # Multi-stage Nginx container
+│   └── package.json
 │
 ├── packages/
 │   └── shared/                  # Common TypeScript interfaces & tool catalog

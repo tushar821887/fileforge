@@ -14,7 +14,7 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
-      "@formatflow/shared": ["../../packages/shared/src/index.ts"]
+      "@formatflow/shared": ["../packages/shared/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

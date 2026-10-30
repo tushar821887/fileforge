@@ -4,17 +4,24 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "backend",
+    "frontend"
   ],
   "scripts": {
     "build:shared": "npm --prefix packages/shared run build",
-    "build:api": "npm --prefix apps/api run build",
-    "build:web": "npm --prefix apps/web run build",
-    "build": "npm run build:shared && npm run build:api && npm run build:web",
-    "start:api": "npm --prefix apps/api run start:dev",
-    "start:web": "npm --prefix apps/web run start",
-    "test:api": "npm --prefix apps/api run test",
-    "test:web": "npm --prefix apps/web run test"
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:api": "npm run build:backend",
+    "build:web": "npm run build:frontend",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "start:backend": "npm --prefix backend run start:dev",
+    "start:frontend": "npm --prefix frontend run start",
+    "start:api": "npm run start:backend",
+    "start:web": "npm run start:frontend",
+    "test:backend": "npm --prefix backend run test",
+    "test:frontend": "npm --prefix frontend run test",
+    "test:api": "npm run test:backend",
+    "test:web": "npm run test:frontend"
   },
   "devDependencies": {
     "typescript": "^5.7.0"
