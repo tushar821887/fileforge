@@ -4,19 +4,155 @@
   <meta charset="utf-8">
   <title>FormatFlow — Free Online File Converter | Fast, Secure & Private</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="FormatFlow is a free, lightning-fast, and privacy-first online file converter. Convert Images (JPG, PNG, WebP, AVIF, TIFF), PDF tools (Merge, Split, Compress, Images to PDF), and Documents (CSV, XLSX, TXT) with zero watermarks.">
-  <meta name="keywords" content="file converter, convert jpg to png, png to jpg, merge pdf, compress pdf, csv to xlsx, free online converter">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+
+  <!-- Primary SEO Meta Tags -->
+  <meta name="description" content="FormatFlow is a free, lightning-fast, and privacy-first online file converter. Convert Images (JPG, PNG, WebP, AVIF, TIFF, SVG, GIF), PDF tools (Merge, Split, Compress, Images to PDF), and Documents (CSV, XLSX, TXT) with zero watermarks and automatic 60-minute file shredding.">
+  <meta name="keywords" content="file converter, convert jpg to png, png to jpg, webp converter, merge pdf, split pdf, compress pdf, csv to xlsx, free online converter, document translator, privacy file conversion">
   <meta name="author" content="FormatFlow">
-  <meta name="robots" content="index, follow">
-  <meta property="og:title" content="FormatFlow — Free Online File Converter">
-  <meta property="og:description" content="Convert your files effortlessly. Free online conversions for Images, PDFs, and Documents with automatic cleanup.">
+  <meta name="publisher" content="FormatFlow">
+  <meta name="copyright" content="FormatFlow">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://formatflow.app/">
+
+  <!-- Open Graph / Facebook Meta Tags -->
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FormatFlow">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="FormatFlow — Free Online File Converter | Fast, Secure & Private">
+  <meta property="og:description" content="Lightning-fast, zero-watermark file converter for Images, PDFs, Spreadsheets, and Presentations with guaranteed 60-minute automatic file deletion.">
+  <meta property="og:url" content="https://formatflow.app/">
+  <meta property="og:image" content="https://formatflow.app/favicon.ico">
+  <meta property="og:image:alt" content="FormatFlow Online File Converter Logo">
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@formatflow">
+  <meta name="twitter:creator" content="@formatflow">
+  <meta name="twitter:title" content="FormatFlow — Free Online File Converter">
+  <meta name="twitter:description" content="Convert images, merge PDFs, compress files, and translate presentations without installation or watermarks.">
+  <meta name="twitter:image" content="https://formatflow.app/favicon.ico">
+
+  <!-- PWA & Mobile Experience -->
+  <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#2563eb">
+  <meta name="application-name" content="FormatFlow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FormatFlow">
+
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Google Consent Mode v2 (Strict Google Ads & EU User Consent Policy Compliance) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    // Initialize Google Consent Mode v2 default state as 'denied'
+    // Updated dynamically via FormatFlow Cookie Consent Manager when the user chooses their preferences
+    try {
+      var savedConsent = localStorage.getItem('formatflow_cookie_consent');
+      if (savedConsent) {
+        var consentObj = JSON.parse(savedConsent);
+        gtag('consent', 'default', {
+          'analytics_storage': consentObj.analytics ? 'granted' : 'denied',
+          'ad_storage': consentObj.advertising ? 'granted' : 'denied',
+          'ad_user_data': consentObj.advertising ? 'granted' : 'denied',
+          'ad_personalization': consentObj.advertising ? 'granted' : 'denied',
+          'wait_for_update': 500
+        });
+      } else {
+        gtag('consent', 'default', {
+          'analytics_storage': 'denied',
+          'ad_storage': 'denied',
+          'ad_user_data': 'denied',
+          'ad_personalization': 'denied',
+          'wait_for_update': 500
+        });
+      }
+    } catch(e) {
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied',
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'wait_for_update': 500
+      });
+    }
+    gtag('set', 'ads_data_redaction', true);
+  </script>
+
+  <!-- Global JSON-LD Structured Data: Organization & WebSite -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://formatflow.app/#organization",
+        "name": "FormatFlow",
+        "url": "https://formatflow.app",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://formatflow.app/favicon.ico"
+        },
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "telephone": "+91-8218870579",
+            "contactType": "Customer Support",
+            "email": "tusharmanusharma@gmail.com",
+            "availableLanguage": ["English", "Hindi"]
+          }
+        ],
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "127, Bhatwara, Bagh Wali Gali",
+          "addressLocality": "Meerut",
+          "postalCode": "250002",
+          "addressRegion": "Uttar Pradesh",
+          "addressCountry": "IN"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://formatflow.app/#website",
+        "url": "https://formatflow.app",
+        "name": "FormatFlow",
+        "description": "Free Online File Converter and Document Translation Studio",
+        "publisher": {
+          "@id": "https://formatflow.app/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://formatflow.app/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://formatflow.app/#webapplication",
+        "name": "FormatFlow Online File Suite",
+        "url": "https://formatflow.app",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="min-h-full flex flex-col font-sans selection:bg-blue-600 selection:text-white">
   <app-root></app-root>

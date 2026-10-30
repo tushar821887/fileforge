@@ -1,4 +1,32 @@
+# FormatFlow robots.txt
+# https://formatflow.app
+
+# Allow general search engine crawlers
 User-agent: *
 Allow: /
+Disallow: /api/
 
+# Google Ads Bot - Destination Quality & Page Experience verification
+User-agent: AdsBot-Google
+Allow: /
+
+# Google Ads Mobile Bot
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
+# Google AdSense Crawler
+User-agent: Mediapartners-Google
+Allow: /
+
+# Googlebot & Image Crawler
+User-agent: Googlebot
+Allow: /
+User-agent: Googlebot-Image
+Allow: /
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+
+# XML Sitemap Location
 Sitemap: https://formatflow.app/sitemap.xml

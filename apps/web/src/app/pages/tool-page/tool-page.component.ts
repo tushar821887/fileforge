@@ -262,7 +262,36 @@ export class ToolPageComponent implements OnInit {
     this.resetWorkspace();
 
     if (foundTool) {
-      // Configure dynamic SEO
+      // Configure dynamic SEO with HowTo, Breadcrumbs, and FAQPage schemas
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://formatflow.app';
+      const breadcrumbSchema = this.seoService.createBreadcrumbSchema([
+        { name: 'Home', url: origin },
+        { name: `${foundTool.category.toUpperCase()} Tools`, url: `${origin}/#${foundTool.category}` },
+        { name: foundTool.shortTitle, url: `${origin}/tools/${foundTool.slug}` },
+      ]);
+
+      const howToSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'HowTo',
+        name: foundTool.title,
+        description: foundTool.description,
+        step: foundTool.steps.map((s) => ({
+          '@type': 'HowToStep',
+          position: s.step,
+          name: s.title,
+          text: s.description,
+        })),
+      };
+
+      const faqSchema = foundTool.faqs?.length
+        ? this.seoService.createFaqSchema(foundTool.faqs)
+        : null;
+
+      const schemaGraph: any[] = [breadcrumbSchema, howToSchema];
+      if (faqSchema) {
+        schemaGraph.push(faqSchema);
+      }
+
       this.seoService.setSeoData({
         title: foundTool.title,
         description: foundTool.metaDescription,
@@ -275,15 +304,7 @@ export class ToolPageComponent implements OnInit {
         ],
         jsonLd: {
           '@context': 'https://schema.org',
-          '@type': 'HowTo',
-          name: foundTool.title,
-          description: foundTool.description,
-          step: foundTool.steps.map((s) => ({
-            '@type': 'HowToStep',
-            position: s.step,
-            name: s.title,
-            text: s.description,
-          })),
+          '@graph': schemaGraph,
         },
       });
     }

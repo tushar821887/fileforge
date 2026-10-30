@@ -563,6 +563,27 @@ export class StudioComponent implements OnInit {
       description:
         'Translate PowerPoint (.pptx), Word (.docx), and text documents into multiple languages while preserving 100% of shapes, fonts, geometries, and visual layouts.',
       canonicalPath: '/studio',
+      keywords: [
+        'presentation translator',
+        'translate pptx keep design',
+        'document translator',
+        'powerpoint translator preserve layout',
+        'multi language document studio',
+      ],
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'FormatFlow Studio',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'All',
+        description:
+          'Translate presentation slides and documents into multiple languages while preserving 100% visual layout, fonts, shapes, and styling.',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      },
     });
   }
 

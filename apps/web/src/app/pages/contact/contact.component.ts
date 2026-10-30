@@ -259,6 +259,23 @@ export class ContactComponent implements OnInit {
         'Have a question or feedback? Contact FormatFlow via phone, email, or our online form. We usually respond within 24 hours.',
       canonicalPath: '/contact',
       keywords: ['contact formatflow', 'support', 'meerut', 'customer service', 'file converter help'],
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'ContactPage',
+        name: 'Contact FormatFlow',
+        description: 'Get in touch with the FormatFlow engineering and support team.',
+        mainEntity: {
+          '@type': 'Organization',
+          name: 'FormatFlow',
+          url: 'https://formatflow.app',
+          contactPoint: {
+            '@type': 'ContactPoint',
+            telephone: '+91-8218870579',
+            contactType: 'Customer Support',
+            email: 'tusharmanusharma@gmail.com',
+          },
+        },
+      },
     });
   }
 

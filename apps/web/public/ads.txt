@@ -1,0 +1,9 @@
+# FormatFlow Authorized Digital Sellers (ads.txt)
+# Google AdSense / Google Ads compliant seller specification
+# Format: <Field #1>, <Field #2>, <Field #3>, <Field #4>
+# Field #1: Domain name of the advertising system
+# Field #2: Publisher account ID
+# Field #3: Type of account/relationship (DIRECT or RESELLER)
+# Field #4: Certification authority ID (Google AdSense is f08c47fec0942fa0)
+
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

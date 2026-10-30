@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CookieConsentService } from '../../core/services/cookie-consent.service.js';
 
 @Component({
   selector: 'app-footer',
@@ -71,6 +72,18 @@ import { RouterLink } from '@angular/router';
               <li><a routerLink="/terms" class="hover:text-white transition-colors">Terms of Service</a></li>
               <li><a routerLink="/about" class="hover:text-white transition-colors">About FormatFlow</a></li>
               <li><a routerLink="/contact" class="hover:text-white transition-colors">Contact Us</a></li>
+              <li>
+                <button
+                  type="button"
+                  (click)="openCookiePreferences()"
+                  class="text-left text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <svg class="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>Cookie Preferences</span>
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -80,11 +93,23 @@ import { RouterLink } from '@angular/router';
           <div class="flex items-center gap-4 mt-4 sm:mt-0">
             <span>No files stored permanently</span>
             <span>•</span>
-            <span>Zero trackers</span>
+            <button
+              type="button"
+              (click)="openCookiePreferences()"
+              class="text-slate-400 hover:text-white underline transition"
+            >
+              Manage Cookies
+            </button>
           </div>
         </div>
       </div>
     </footer>
   `,
 })
-export class FooterComponent {}
+export class FooterComponent {
+  private readonly cookieConsentService = inject(CookieConsentService);
+
+  openCookiePreferences(): void {
+    this.cookieConsentService.openPreferences();
+  }
+}
