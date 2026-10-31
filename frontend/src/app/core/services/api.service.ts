@@ -22,8 +22,19 @@ export interface UploadProgressEvent<T = BatchConversionResponse> {
 })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  // Default to relative / proxy or localhost:3000
-  private readonly baseUrl = 'http://localhost:3000';
+  private get baseUrl(): string {
+    if (typeof window !== 'undefined') {
+      const customUrl = (window as any).__API_URL__;
+      if (customUrl && typeof customUrl === 'string' && customUrl.trim().length > 0) {
+        return customUrl.trim().replace(/\/+$/, '');
+      }
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:3000';
+      }
+      return window.location.origin;
+    }
+    return 'http://localhost:3000';
+  }
 
   getDownloadUrl(jobId: string): string {
     return `${this.baseUrl}/api/v1/conversions/${jobId}/download`;
