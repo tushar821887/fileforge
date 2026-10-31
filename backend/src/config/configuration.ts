@@ -18,7 +18,7 @@ export default (): AppConfig => {
   return {
     port: parseInt(process.env.PORT ?? '3000', 10),
     nodeEnv: process.env.NODE_ENV ?? 'development',
-    corsOrigins: (process.env.CORS_ORIGINS ?? 'http://localhost:4200,http://localhost:3000')
+    corsOrigins: (process.env.CORS_ORIGINS ?? 'http://localhost:4200,http://localhost:3000,https://fileforge.anythingforyou.in,http://fileforge.anythingforyou.in')
       .split(',')
       .map((o) => o.trim()),
     storagePath: process.env.STORAGE_PATH

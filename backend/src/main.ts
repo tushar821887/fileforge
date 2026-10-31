@@ -18,10 +18,16 @@ async function bootstrap() {
   // Configure CORS
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      if (!origin || corsOrigins.includes(origin) || corsOrigins.includes('*')) {
+      if (
+        !origin ||
+        corsOrigins.includes(origin) ||
+        corsOrigins.includes('*') ||
+        origin.endsWith('.anythingforyou.in') ||
+        origin === 'https://fileforge.anythingforyou.in'
+      ) {
         callback(null, true);
       } else {
-        callback(null, true); // Allow during development
+        callback(null, true); // Allow during development and client integrations
       }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
