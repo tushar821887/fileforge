@@ -1,6 +1,13 @@
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
+# 1. First pack the shared package into a .tgz tarball
+Set-Location 'D:\Projects\min\fileforge\packages\shared'
+npm pack --quiet
+Copy-Item 'D:\Projects\min\fileforge\packages\shared\formatflow-shared-1.0.0.tgz' 'D:\Projects\min\fileforge\backend\formatflow-shared-1.0.0.tgz' -Force
+
+Set-Location 'D:\Projects\min\fileforge'
+
 $zipPath = 'D:\Projects\min\fileforge\api-fileforge-hpanel.zip'
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 
@@ -23,19 +30,24 @@ function Add-FileToZip($filePath, $entryName) {
     [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $fileResolved, $entryName, [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
 }
 
+# Add source and build files
 Add-FolderToZip 'D:\Projects\min\fileforge\backend\dist' 'dist/'
+Add-FolderToZip 'D:\Projects\min\fileforge\backend\src' 'src/'
 Add-FolderToZip 'D:\Projects\min\fileforge\backend\tmp' 'tmp/'
 Add-FolderToZip 'D:\Projects\min\fileforge\packages\shared\dist' 'packages/shared/dist/'
 Add-FileToZip 'D:\Projects\min\fileforge\packages\shared\package.json' 'packages/shared/package.json'
-Add-FolderToZip 'D:\Projects\min\fileforge\node_modules\@formatflow\shared' 'node_modules/@formatflow/shared/'
 
+# Add root files
+Add-FileToZip 'D:\Projects\min\fileforge\backend\formatflow-shared-1.0.0.tgz' 'formatflow-shared-1.0.0.tgz'
 Add-FileToZip 'D:\Projects\min\fileforge\backend\index.js' 'index.js'
 Add-FileToZip 'D:\Projects\min\fileforge\backend\app.js' 'app.js'
 Add-FileToZip 'D:\Projects\min\fileforge\backend\server.js' 'server.js'
 Add-FileToZip 'D:\Projects\min\fileforge\backend\.htaccess' '.htaccess'
 Add-FileToZip 'D:\Projects\min\fileforge\backend\.env' '.env'
+Add-FileToZip 'D:\Projects\min\fileforge\backend\nest-cli.json' 'nest-cli.json'
+Add-FileToZip 'D:\Projects\min\fileforge\backend\tsconfig.json' 'tsconfig.json'
+Add-FileToZip 'D:\Projects\min\fileforge\backend\tsconfig.build.json' 'tsconfig.build.json'
 Add-FileToZip 'D:\Projects\min\fileforge\backend\package.json' 'package.json'
-Add-FileToZip 'D:\Projects\min\fileforge\backend\package-lock.json' 'package-lock.json'
 
 $archive.Dispose()
-Write-Host "api-fileforge-hpanel.zip generated successfully!"
+Write-Host "api-fileforge-hpanel.zip generated successfully with local shared tarball!"
