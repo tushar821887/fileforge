@@ -8,4 +8,4 @@
  * - On localhost / 127.0.0.1: automatically points to http://localhost:3000
  * - In production: automatically calls relative / same-domain API routes (window.location.origin)
  */
-window.__API_URL__ = '';
+window.__API_URL__ = 'https://api-fileforge.anythingforyou.in';
