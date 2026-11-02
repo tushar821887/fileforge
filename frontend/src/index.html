@@ -52,6 +52,11 @@
 
   <!-- Runtime API Configuration -->
   <script src="/config.js"></script>
+  <script>
+    if (!window.__API_URL__ || window.__API_URL__.trim() === '') {
+      window.__API_URL__ = 'https://api-fileforge.anythingforyou.in';
+    }
+  </script>
 
   <!-- Google Consent Mode v2 (Strict Google Ads & EU User Consent Policy Compliance) -->
   <script>

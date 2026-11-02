@@ -31,9 +31,12 @@ export class ApiService {
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://localhost:3000';
       }
+      if (window.location.hostname.includes('anythingforyou.in')) {
+        return 'https://api-fileforge.anythingforyou.in';
+      }
       return window.location.origin;
     }
-    return 'http://localhost:3000';
+    return 'https://api-fileforge.anythingforyou.in';
   }
 
   getDownloadUrl(jobId: string): string {
