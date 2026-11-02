@@ -6,4 +6,4 @@
 # Field #3: Type of account/relationship (DIRECT or RESELLER)
 # Field #4: Certification authority ID (Google AdSense is f08c47fec0942fa0)
 
-google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+google.com, pub-3666322393889193, DIRECT, f08c47fec0942fa0
